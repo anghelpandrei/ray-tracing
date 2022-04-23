@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "c:/Users/Andrei/CLionProjects/RayTracing/cmake-build-debug"
+			"value" : "c:/Users/Andrei/CLionProjects/Ray-tracing/cmake-build-debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -623,7 +623,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "C:/Users/Andrei/CLionProjects/RayTracing"
+			"value" : "C:/Users/Andrei/CLionProjects/Ray-tracing"
 		},
 		{
 			"name" : "CMAKE_INSTALL_PREFIX",
@@ -635,7 +635,7 @@
 				}
 			],
 			"type" : "PATH",
-			"value" : "C:/Program Files (x86)/untitled"
+			"value" : "C:/Program Files (x86)/RayTracing"
 		},
 		{
 			"name" : "CMAKE_LINKER",
@@ -1239,7 +1239,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/Andrei/CLionProjects/RayTracing/cmake-build-debug"
+			"value" : "C:/Users/Andrei/CLionProjects/Ray-tracing/cmake-build-debug"
 		},
 		{
 			"name" : "RayTracing_IS_TOP_LEVEL",
@@ -1263,43 +1263,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/Andrei/CLionProjects/RayTracing"
-		},
-		{
-			"name" : "untitled_BINARY_DIR",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Value Computed by CMake"
-				}
-			],
-			"type" : "STATIC",
-			"value" : "C:/Users/Andrei/CLionProjects/RayTracing/cmake-build-debug"
-		},
-		{
-			"name" : "untitled_IS_TOP_LEVEL",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Value Computed by CMake"
-				}
-			],
-			"type" : "STATIC",
-			"value" : "ON"
-		},
-		{
-			"name" : "untitled_SOURCE_DIR",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Value Computed by CMake"
-				}
-			],
-			"type" : "STATIC",
-			"value" : "C:/Users/Andrei/CLionProjects/RayTracing"
+			"value" : "C:/Users/Andrei/CLionProjects/Ray-tracing"
 		}
 	],
 	"kind" : "cache",

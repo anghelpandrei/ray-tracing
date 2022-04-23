@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/Andrei/CLionProjects/RayTracing/cmake-build-debug",
-		"source" : "C:/Users/Andrei/CLionProjects/RayTracing"
+		"build" : "C:/Users/Andrei/CLionProjects/Ray-tracing/cmake-build-debug",
+		"source" : "C:/Users/Andrei/CLionProjects/Ray-tracing"
 	},
 	"version" : 
 	{

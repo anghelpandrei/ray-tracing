@@ -1,7 +1,3 @@
-//
-// Created by Andrei on 23/04/2022.
-//
-
 #ifndef RAYTRACING_WALL_H
 #define RAYTRACING_WALL_H
 
