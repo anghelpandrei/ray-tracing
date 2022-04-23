@@ -1,0 +1,12 @@
+# ninja log v5
+3	417	6724381792074265	CMakeFiles/RayTracing.dir/Object.cpp.obj	f3163519f81f1f02
+2	519	6724394139082462	build.ninja	157f4249a90bbada
+5	844	6724382509481527	CMakeFiles/RayTracing.dir/main.cpp.obj	419672654173f783
+447	664	6724383285738782	RayTracing.exe	90c63cb26aba6142
+0	27	0	clean	6759bd54dddbba68
+6	447	6724383283619467	CMakeFiles/RayTracing.dir/Wall.cpp.obj	bcf744dbb81d1b73
+40	955	6724408849611501	CMakeFiles/RayTracing.dir/Wall.cpp.obj	bcf744dbb81d1b73
+52	958	6724408849491527	CMakeFiles/RayTracing.dir/Receiver.cpp.obj	81c6dd9d0ed01792
+58	961	6724408849621499	CMakeFiles/RayTracing.dir/Transmitter.cpp.obj	e6a5bb09f50e9818
+5	1290	6724408853070046	CMakeFiles/RayTracing.dir/main.cpp.obj	419672654173f783
+1290	1553	6724408855659459	RayTracing.exe	fdfcc30423bbe365
