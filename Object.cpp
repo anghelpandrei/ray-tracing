@@ -1,17 +1,21 @@
 #include "Object.h"
 
-double Object::getPosX() const {
-    return posX;
+double Object::getX() const {
+    return x;
 }
 
-double Object::getPosY() const {
-    return posY;
+double Object::getY() const {
+    return y;
 }
 
-void Object::setPosX(double posX) {
-    Object::posX = posX;
+void Object::setX(double x) {
+    this->x = x;
 }
 
-void Object::setPosY(double posY) {
-    Object::posY = posY;
+void Object::setY(double y) {
+    this->y = y;
+}
+Object::Object(double x, double y) {
+    this->x = x;
+    this->y = y;
 }
