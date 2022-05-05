@@ -5,13 +5,14 @@
 class Object {
 public:
 
-    double getPosY() const;
-    double getPosX() const;
-    void setPosX(double posX);
-    void setPosY(double posY);
+    double getY() const;
+    double getX() const;
+    void setX(double x);
+    void setY(double y);
 
-    double posX; //position X du centre de l'objet
-    double posY; //position Y du centre de l'objet
+    double x; //position X du centre de l'objet
+    double y; //position Y du centre de l'objet
+    Object(double x, double y);
 };
 
 

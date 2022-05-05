@@ -5,7 +5,8 @@
 #include "Object.h"
 
 class Receiver : public Object {
-
+public:
+	Receiver(double x, double y);
 };
 
 

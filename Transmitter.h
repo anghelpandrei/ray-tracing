@@ -5,7 +5,8 @@
 #include "Object.h"
 
 class Transmitter : public Object {
-
+public:
+	Transmitter(double x, double y);
 };
 
 
