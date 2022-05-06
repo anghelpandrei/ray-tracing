@@ -76,6 +76,16 @@ void Wall::setNy(double ny) {
     Wall::ny = ny;
 }
 
+double Wall::getUx() const {
+    return ux;
+}
+
+double Wall::getUy() const {
+    return uy;
+}
+
+
+
 
 Object Wall::symmetryP(Object point) {
     double xp = point.getX();

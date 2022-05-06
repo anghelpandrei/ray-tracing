@@ -11,13 +11,18 @@
 #define Z_0 377
 #define mu_0 0.000001256637
 #define eps_0 0.000000000008854187
+#define c 299792458
+#define Ra 1
 //#define R 73
 
 using namespace std;
 
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 900;
-complex<double> j(0, 1.0);
+complex<double> j(0, 1.0);            //nombre imaginaire j
+double omega = 868300000 * 2 * M_PI;  //pulsation de l'onde
+double lambda = 2 * M_PI * c / omega; //longueur d'onde
+double beta = omega / c;              //nombre d'onde dans le vide
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
@@ -77,26 +82,28 @@ double reflexion(Object point1, Object point2, Wall mur) {
     double dx = point2.getX() - xi;
     double dy = point2.getY() - yi;
     double d = sqrt(dx * dx + dy * dy);
-    double cos_theta_i = dx / d;
+    double cos_theta_i = abs((dx * mur.getNx() + dy * mur.getNy()) / d);
     double sin_theta_i = sqrt(1 - cos_theta_i * cos_theta_i);
     double sin_theta_t = sqrt(1 / epsR) * sin_theta_i;
     double cos_theta_t = sqrt(1 - sin_theta_t * sin_theta_t);
     double s = thickness / cos_theta_t;
-    double omega = 868300000*2*M_PI;
+    
     double eps = epsR * eps_0;
     double whatever = sigma / (omega * eps);
     double whatever2 = sqrt(1 + whatever * whatever);
     double whatever3 = omega * sqrt(mu_0 * eps / 2);
-    double alpha = whatever3 * sqrt(whatever2 - 1);
-    double beta = whatever3 * sqrt(whatever2 + 1);
-    cout << "Alpha : " << alpha << endl;
-    cout << "Beta : " << beta << endl;
+    double alpha_m = whatever3 * sqrt(whatever2 - 1);
+    double beta_m = whatever3 * sqrt(whatever2 + 1);
+    cout << "Alpha_m : " << alpha_m << endl;
+    cout << "Beta_m : " << beta_m << endl;
     //double beta = 39.9;
     //complex<double> Z_m (171.57, 6.65);
     complex<double> Z_m = sqrt(mu_0/(eps-j*sigma/omega));
     cout << "Z_m : " << Z_m << endl;
-    complex<double> gamma_m(alpha, beta);
+    complex<double> gamma_m(alpha_m, beta_m);
     
+    
+    cout << "Beta : " << beta << endl;
    
     complex<double> whatever4 = Z_m * cos_theta_i;
     complex<double> whatever5 = Z_0 * cos_theta_t;
@@ -105,18 +112,22 @@ double reflexion(Object point1, Object point2, Wall mur) {
     complex<double> we = exp(-2.0 * gamma_m * s) * exp(j * beta * 2.0 * s * sin_theta_t * sin_theta_i);
     auto ref_m = ref_perp - (1.0 - ref_perp2)*(ref_perp * we)/(1.0 - ref_perp2 * we);
     auto trans_m = (1.0-ref_perp2)*exp(-gamma_m*s)/(1.0-ref_perp2*we);
-    auto E = sqrt(60 * 2);
-    cout << "Cos theta t : " << cos_theta_t << endl;
-    cout << "sin_theta_t: " << sin_theta_t << endl;
-    cout << "sin_theta_i : " << sin_theta_i << endl;
+    auto E = trans_m*exp(-j*beta*d)/d;
+    double sum = norm(E);
+    double P = 60 * lambda * lambda * 0.00164 / (8 * M_PI * M_PI * Ra) * sum * sum;
     cout << "Cos theta i  : " << cos_theta_i << endl;
+    cout << "sin_theta_i : " << sin_theta_i << endl;
+    cout << "sin_theta_t: " << sin_theta_t << endl;
+    cout << "Cos theta t : " << cos_theta_t << endl;
+    
     cout << "s : " << s << endl;
     cout << "d : " << d << endl;
     cout << "dy : " << dy << endl;
     cout << "dx : " << dx << endl;
     cout << "ref_perp : " << ref_perp << endl;
     cout << "ref_m : " << ref_m << endl;
-    double P = 0;
+    cout << "trans_m : " << trans_m << endl;
+    cout << "E : " << E << endl;
     return P;
 }
 
@@ -169,7 +180,7 @@ int main(int argc, char* argv[]) {
 
             SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
-            /*for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++) {
 
                 double x1 = walls[i].getX(), x2 = walls[i].getX2(), y1 = walls[i].getY(), y2 = walls[i].getY2();
                 double xei = walls[i].image(emetteur).getX(), yei = walls[i].image(emetteur).getY();
@@ -191,7 +202,7 @@ int main(int argc, char* argv[]) {
                 SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
                 line(xr, yr, xR, yR);
                 line(xe, ye, xR, yR);
-            }*/
+            }
 
             SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
             line(recepteur.getX(), recepteur.getY(), emetteur.getX(), emetteur.getY());
