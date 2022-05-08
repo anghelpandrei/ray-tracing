@@ -4,15 +4,19 @@
 
 class Object {
 public:
-
-    double getY() const;
-    double getX() const;
-    void setX(double x);
-    void setY(double y);
+    Object();
+    double dotP(Object vec);
+    double norm();
 
     double x; //position X du centre de l'objet
     double y; //position Y du centre de l'objet
     Object(double x, double y);
+
+    friend Object operator+(const Object& obj1, const Object& obj2);
+    friend Object operator-(const Object& obj1, const Object& obj2);
+    friend Object operator*(const Object& obj, const double& scal);
+    friend Object operator*(const double& scal, const Object& obj);
+    friend Object operator/(const Object& obj, const double& scal);
 };
 
 

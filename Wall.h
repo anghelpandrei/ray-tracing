@@ -7,44 +7,21 @@
 class Wall : public Object {
 public:
 
-    double getLength() const;
-    void setLength(double length);
-
-    double getAngle() const;
-    void setAngle(double angle);
-
-    double getThickness() const;
-    void setThickness(double thickness);
-
-    double getEpsR() const;
-    void setEpsR(double epsR);
-
-    double getSigma() const;
-    void setSigma(double sigma);
-
-    double getX2() const;
-    void setX2(double x2);
-
-    double getY2() const;
-    void setY2(double y2);
-
-    double getNx() const;
-    void setNx(double nx);
-
-    double getNy() const;
-    void setNy(double ny);
-
     Wall(double x, double y, double length, double angle, double thickness, double epsR, double sigma);
     
-
+    bool sameSide(Object point1, Object point2);
     Object image(Object point);
     Object symmetryP(Object point);
     Object reflexP(Object point1, Object point2);
+    double cos_i(Object p1, Object p2);
+    double sin_i(double cos_i);
+    double sin_t(double sin_i);
+    double cos_t(double sin_t);
+    complex<double> we(double cos_i);
+    complex<double> transmission(complex<double> ref_perp, double cos_i);
+    
 
-    double nx;
-    double ny;
 
-private:
     double length;    //longueur du mur
     double angle;     //angle du mur par rapport à l'axe des abscisses
     double thickness; //épaisseur du mur/paroi
@@ -57,8 +34,21 @@ private:
     double a;
     double b;
 
+    double nx;
+    double ny;
+
     double ux;
     double uy;
+
+    Object n;
+    Object u;
+
+    double beta;
+    complex<double> j;
+    double alpha_m;
+    double beta_m;
+    complex<double> gamma_m;
+    complex<double> Z_m;
 };
 
 

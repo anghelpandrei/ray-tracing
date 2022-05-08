@@ -1,123 +1,79 @@
 #include "Wall.h"
 #include <cmath>
 #include <iostream>
+#include <SDL_stdinc.h>
+#include <complex>
 #define PI 3.14159265
+#define eps_0 0.000000000008854187
+#define mu_0 0.000001256637
+#define c 299792458
+
+using namespace std;
 
 
-double Wall::getLength() const {
-    return length;
+double Wall::cos_i(Object p1, Object p2) {
+    Object d = p2 - p1;
+    return abs(d.dotP(n) / d.norm());
 }
 
-void Wall::setLength(double length) {
-    Wall::length = length;
+double Wall::sin_i(double cos_i) {
+    return sqrt(1 - cos_i * cos_i);
 }
 
-double Wall::getAngle() const {
-    return angle;
+double Wall::sin_t(double sin_i) {
+    return sqrt(1 / epsR) * sin_i;
 }
 
-void Wall::setAngle(double angle) {
-    Wall::angle = angle;
-}
-
-double Wall::getThickness() const {
-    return thickness;
-}
-
-void Wall::setThickness(double thickness) {
-    Wall::thickness = thickness;
-}
-
-double Wall::getEpsR() const {
-    return epsR;
-}
-
-void Wall::setEpsR(double epsR) {
-    Wall::epsR = epsR;
-}
-
-double Wall::getSigma() const {
-    return sigma;
-}
-
-void Wall::setSigma(double sigma) {
-    Wall::sigma = sigma;
-}
-
-double Wall::getX2() const {
-    return x2;
-}
-
-void Wall::setX2(double x2) {
-    Wall::x2 = x2;
-}
-
-double Wall::getY2() const {
-    return y2;
-}
-
-void Wall::setY2(double y2) {
-    Wall::y2 = y2;
-}
-
-double Wall::getNx() const {
-    return nx;
-}
-
-void Wall::setNx(double nx) {
-    Wall::nx = nx;
-}
-
-double Wall::getNy() const {
-    return ny;
-}
-
-void Wall::setNy(double ny) {
-    Wall::ny = ny;
-}
-
-double Wall::getUx() const {
-    return ux;
-}
-
-double Wall::getUy() const {
-    return uy;
+double Wall::cos_t(double sin_t) {
+    return sqrt(1 - sin_t * sin_t);
 }
 
 
 
+complex<double> Wall::we(double cos_i) {
+    double sin_i = sqrt(1 - cos_i * cos_i);
+    double sin_t = sqrt(1 / epsR) * sin_i;
+    double s = thickness / cos_t(sin_t);
+
+    return exp(-2.0 * gamma_m * s) * exp(j * beta * 2.0 * s * sin_t * sin_i);
+}
+
+complex<double> Wall::transmission(complex<double> ref_perp, double cos_i) {
+    auto ref_perp2 = ref_perp * ref_perp;
+    double s = thickness / cos_t(sin_t(sin_i(cos_i)));
+    return (1.0 - ref_perp2) * exp(-gamma_m * s) / (1.0 - ref_perp2 * we(cos_i));
+}
+
+bool Wall::sameSide(Object point1, Object point2) {
+    if (n.dotP(image(point1) - point1) * n.dotP(point2 - image(point2)) >= 0) {
+        return false;
+    }
+    return true;
+}
+
+Object Wall::image(Object point) {
+    return point - (2 * (point - Object(x,y)).dotP(n) * n);
+}
 
 Object Wall::symmetryP(Object point) {
-    double xp = point.getX();
-    double yp = point.getY();
+    double xp = point.x;
+    double yp = point.y;
     double t = (a * xp - yp + b) / (ny - a*nx);
     return Object(xp + t * nx, yp + t * ny);
 }
 
-/*Object Wall::image(Object point) {
-    double xp = point.getX();
-    double yp = point.getY();
-    double dotP = (xp - x) * nx + (yp - y) * ny; //gros problème ici, je ne sais pas le résoudre mais pas d'impact pr le moment
-    //std::cout << "xp = " << xp << ", yp = " << yp << ", dotP = " << dotP << std::endl;
-    return Object(xp - (2 * nx * dotP), yp - (2 * ny * dotP));
-}*/
-Object Wall::image(Object point) {
-    Object s = symmetryP(point);
-    return Object(2 * s.getX() - point.getX(), 2 * s.getY() - point.getY());
-}
-
 Object Wall::reflexP(Object point1, Object point2) {
     Object s = symmetryP(point1);
-    double xi = 2 * s.getX() - point1.getX();
-    double yi = 2 * s.getY() - point1.getY(); //bons calculs mais y a moyen d'optimiser oui^^
-    double xp = point2.getX();
-    double yp = point2.getY();
+    double xi = 2 * s.x - point1.x;
+    double yi = 2 * s.y - point1.y; //bons calculs mais y a moyen d'optimiser oui^^
+    double xp = point2.x;
+    double yp = point2.y;
     double dx = xp - xi;
     double dy = yp - yi;
 
-    double t = (dy * (xi - s.getX()) - dx * (yi - s.getY()))/(ux*dy - uy*dx);
-    //std::cout << "dx = " << dx << ", dy = " << dy << std::endl;
-    return Object(s.getX() + t * ux, s.getY() + t * uy);
+    double t = (dy * (xi - s.x) - dx * (yi - s.y))/(ux*dy - uy*dx);
+    
+    return Object(s.x + t * ux, s.y + t * uy);
 }
 
 Wall::Wall(double x, double y, double length, double angle, double thickness, double epsR, double sigma) :
@@ -128,14 +84,33 @@ Object(x, y), length(length), angle(angle), thickness(thickness), epsR(epsR), si
     
     nx = y2 - y;
     ny = x - x2;
-    double norm = sqrt(nx * nx + ny * ny);
-    nx /= norm;
-    ny /= norm;
+    
+    n = Object(nx, ny);
+    n = n/n.norm();
+    nx = n.x;
+    ny = n.y;
+    
+
     a = (y2 - y) / (x2 - x);
     b = y - a * x;
+    
     ux = x2 - x;
     uy = y2 - y;
-    norm = sqrt(ux * ux + uy * uy);
-    ux /= norm;
-    uy /= norm;
+    
+    u = Object(ux, uy);
+    u = u / u.norm();
+    ux = u.x;
+    uy = u.y;
+
+    complex<double> j(0.0, 1.0);
+    double omega = 868300000 * 2 * M_PI;
+    double beta = omega / c;
+
+    Z_m = sqrt(mu_0 / (epsR * eps_0 - j * sigma / omega));
+    double whatever = sigma / (omega * epsR * eps_0);
+    double whatever2 = sqrt(1 + whatever * whatever);
+    double whatever3 = omega * sqrt(mu_0 * epsR * eps_0 / 2);
+    alpha_m = whatever3 * sqrt(whatever2 - 1);
+    beta_m = whatever3 * sqrt(whatever2 + 1);
+    gamma_m = complex<double>(alpha_m, beta_m);
 }
