@@ -38,65 +38,14 @@ complex<double> gamma_m(alpha_m, beta_m);
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
-bool init();
-
-void close();
-
-bool init() {
-    bool success = true;
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-        success = false;
-    }
-    else {
-        if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
-        {
-            printf("Warning: Linear texture filtering not enabled!");
-        }
-        window = SDL_CreateWindow("Simulation", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-        if (window == NULL)
-        {
-            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-            success = false;
-        }
-        else
-        {
-            renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-            
-        }
-    }
-    return success;
-}
-
-void close() {
-    SDL_DestroyWindow(window);
-    SDL_DestroyRenderer(renderer);
-    window = NULL;
-    renderer = NULL;
-    SDL_Quit();
-}
-
-double scale = 3;
-
-void line(int x1, int y1, int x2, int y2) {
-    SDL_RenderDrawLine(renderer, SCREEN_WIDTH / 2 + scale * x1, SCREEN_HEIGHT / 2 - scale * y1, SCREEN_WIDTH / 2 + scale * x2, SCREEN_HEIGHT / 2 - scale * y2);
-    //SDL_RenderDrawLine(renderer, x1, - y1,  x2,  y2);
-}
-
-void point(int x, int y) {
-    SDL_RenderDrawLine(renderer, SCREEN_WIDTH / 2 + scale * x - 2, SCREEN_HEIGHT / 2 - scale * y - 2, SCREEN_WIDTH / 2 + scale * x + 2, SCREEN_HEIGHT / 2 - scale * y + 2);
-    SDL_RenderDrawLine(renderer, SCREEN_WIDTH / 2 + scale * x - 2, SCREEN_HEIGHT / 2 - scale * y + 2, SCREEN_WIDTH / 2 + scale * x + 2, SCREEN_HEIGHT / 2 - scale * y - 2);
-    //SDL_RenderDrawPoint(renderer, SCREEN_WIDTH / 2 + scale * x, SCREEN_HEIGHT / 2 - scale * y);
-}
-
 double reflexion(Object point1, Object point2, Wall mur) {
-    
+
     double xi = point1.x;
     double yi = point1.y;
     double dx = point2.x - xi;
     double dy = point2.y - yi;
     double d = sqrt(dx * dx + dy * dy);
-    double cos_theta_i = abs((dx * mur.nx + dy * mur.ny) / d);
+    double cos_theta_i = abs((dx * mur.n.x + dy * mur.n.y) / d);
     double sin_theta_i = sqrt(1 - cos_theta_i * cos_theta_i);
     double sin_theta_t = sqrt(1 / epsR) * sin_theta_i;
     double cos_theta_t = sqrt(1 - sin_theta_t * sin_theta_t);
@@ -108,17 +57,17 @@ double reflexion(Object point1, Object point2, Wall mur) {
     auto ref_perp = (whatever4 - whatever5) / (whatever4 + whatever5);
     auto ref_perp2 = ref_perp * ref_perp;
     complex<double> we = exp(-2.0 * gamma_m * s) * exp(j * beta * 2.0 * s * sin_theta_t * sin_theta_i);
-    auto ref_m = ref_perp - (1.0 - ref_perp2)*(ref_perp * we)/(1.0 - ref_perp2 * we);
-    auto trans_m = (1.0-ref_perp2)*exp(-gamma_m*s)/(1.0-ref_perp2*we);
-    auto E = trans_m * sqrt(60 * ptxgtx) * exp(-j*beta*d)/d;
+    auto ref_m = ref_perp - (1.0 - ref_perp2) * (ref_perp * we) / (1.0 - ref_perp2 * we);
+    auto trans_m = (1.0 - ref_perp2) * exp(-gamma_m * s) / (1.0 - ref_perp2 * we);
+    auto E = trans_m * sqrt(60 * ptxgtx) * exp(-j * beta * d) / d;
     double sum = norm(E);
-    
+
     double P = lambda * lambda / (8 * M_PI * M_PI * Ra) * sum;
     /*cout << "Cos theta i  : " << cos_theta_i << endl;
     cout << "sin_theta_i : " << sin_theta_i << endl;
     cout << "sin_theta_t: " << sin_theta_t << endl;
     cout << "Cos theta t : " << cos_theta_t << endl;
-    
+
     cout << "sum : " << sum << endl;
     cout << "s : " << s << endl;
     cout << "d : " << d << endl;
@@ -150,151 +99,98 @@ double puissance(complex<double> Es []) {
     return lambda * lambda / (8 * M_PI * M_PI * Ra) * sum;
 }*/
 
+bool init() {
+    bool success = true;
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        success = false;
+    }
+    else {
+        if (!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1")) {
+            printf("Warning: Linear texture filtering not enabled!");
+        }
+        window = SDL_CreateWindow("Simulation", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+        if (window == NULL) {
+            printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+            success = false;
+        }
+        else {
+            renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        }
+    }
+    return success;
+}
+void close() {
+    SDL_DestroyWindow(window);
+    SDL_DestroyRenderer(renderer);
+    window = NULL;
+    renderer = NULL;
+    SDL_Quit();
+}
+
+double scale = 3;
+
+void line(Object p1, Object p2) {
+    SDL_RenderDrawLine(renderer, SCREEN_WIDTH / 2 + scale * p1.x, SCREEN_HEIGHT / 2 - scale * p1.y, SCREEN_WIDTH / 2 + scale * p2.x, SCREEN_HEIGHT / 2 - scale * p2.y);
+    //SDL_RenderDrawLine(renderer, x1, - y1,  x2,  y2);
+}
+
+void point(Object p) {
+    SDL_RenderDrawLine(renderer, SCREEN_WIDTH / 2 + scale * p.x - 2, SCREEN_HEIGHT / 2 - scale * p.y - 2, SCREEN_WIDTH / 2 + scale * p.x + 2, SCREEN_HEIGHT / 2 - scale * p.y + 2);
+    SDL_RenderDrawLine(renderer, SCREEN_WIDTH / 2 + scale * p.x - 2, SCREEN_HEIGHT / 2 - scale * p.y + 2, SCREEN_WIDTH / 2 + scale * p.x + 2, SCREEN_HEIGHT / 2 - scale * p.y - 2);
+    //SDL_RenderDrawPoint(renderer, SCREEN_WIDTH / 2 + scale * x, SCREEN_HEIGHT / 2 - scale * y);
+}
+
+
 
 
 int main(int argc, char* argv[]) {
     
     cout << "Hello, World!" << endl;
-    Transmitter emetteur(32, 10);
-    Receiver recepteur(47, 65);
-    Wall wall1 = Wall(0, 0, 80, 90, thickness, epsR, sigma);
+    Transmitter emetteur(32, 10);  //initialisation d'un emetteur
+    Receiver recepteur(47, 65);    //initialisation d'un recepteur
+    Wall wall1 = Wall(0, 0, 80, 90, thickness, epsR, sigma); //initialisation des murs
     Wall wall2 = Wall(0, 20, 80, 0, thickness, epsR, sigma);
     Wall wall3 = Wall(0, 80, 80, 0, thickness, epsR, sigma);
     Wall walls[] = {wall1, wall2, wall3};
-    double xe = emetteur.x;
-    double ye = emetteur.y;
-    double xr = recepteur.x;
-    double yr = recepteur.y;
+
     Object image = wall1.image(emetteur);
     cout << "Mur 1 : " << endl;
     double r = reflexion(image, recepteur, wall1);
     cout << "Mur 2 : " << endl;
     reflexion(emetteur, recepteur, wall2);
 
-    /*for (int i = 0; i < 3; i++) {
-        cout << "Mur " << i << " : x = " << walls[i].getX() << ", y = " << walls[i].getY() << ", n = (" << walls[i].getNx() << ", " << walls[i].getNy() << ")" << endl;
-    }*/
+    Object image1[3];
+    Object image2[3][3];
+    Object image3[3][3][3];
 
-    double x1murs[3];
-    double y1murs[3];
-    double x2murs[3];
-    double y2murs[3];
-    double xei[3];
-    double yei[3];
-    Object pReflex[3];
-    double xReflex[3];
-    double yReflex[3];
-
-    double xImage1[3];
-    double yImage1[3];
-    double xImage2[3][3];
-    double yImage2[3][3];
-
-    double xReflex1[3];
-    double yReflex1[3];
-    double xReflex2[3];
-    double yReflex2[3];
+    Object reflex1[3];
+    Object reflex2[3][3][2];
+    Object reflex3[3][3][3][3];
 
 
-    double xImage3[3][3][3];
-    double yImage3[3][3][3];
-
-    double xReflex31[3][3][3];
-    double yReflex31[3][3][3];
-    double xReflex32[3][3][3];
-    double yReflex32[3][3][3];
-    double xReflex33[3][3][3];
-    double yReflex33[3][3][3];
-
-
-    bool trueReflex[3] = { true, true, true };
-    bool trueReflex2[3][3] = { {true, true, true}, {true, true, true}, {true, true, true} };
-    bool trueReflex3[3][3][3] = { { {true, true, true}, {true, true, true}, {true, true, true} }, { {true, true, true}, {true, true, true}, {true, true, true} }, { {true, true, true}, {true, true, true}, {true, true, true} } };
-
+    
     for (int i = 0; i < 3; i++) {
 
-        x1murs[i] = walls[i].x;
-        y1murs[i] = walls[i].y;
-        x2murs[i] = walls[i].x2;
-        y2murs[i] = walls[i].y2;
-        
-        Object image1 = walls[i].image(emetteur);
-
-        xei[i] = image1.x;
-        yei[i] = image1.y;
-
-        pReflex[i] = walls[i].reflexP(emetteur, recepteur);
-        xReflex[i] = pReflex[i].x;
-        yReflex[i] = pReflex[i].y;
-
-        
+        image1[i] = walls[i].image(emetteur);
+        reflex1[i] = walls[i].refP(emetteur, recepteur);
 
         for (int j = 0; j < 3; j++) {
             if (j != i) {
                 
-                Object image2 = walls[j].image(image1);
-                
-                Object reflex1 = walls[j].reflexP(recepteur, image1);
-                Object reflex2 = walls[i].reflexP(emetteur, reflex1);
+                image2[i][j] = walls[j].image(image1[i]);
+                reflex2[i][j][0] = walls[j].refP(recepteur, image1[i]);
+                reflex2[i][j][1] = walls[i].refP(emetteur, reflex2[i][j][0]);
 
-                /*if (dotP(Object(image1.getX() - xe, image1.getY() - ye), walls[i].getN()) * dotP(Object(xr - walls[i].symmetryP(recepteur).getX(), yr - walls[i].symmetryP(recepteur).getY()), walls[i].getN()) >= 0) {
-                    trueReflex[i] = false;
-                }*/
-
-                cout << "reflex1.getX = " << reflex1.x << endl;
-                cout << "reflex1.getY = " << reflex1.x << endl;
-
-                cout << "reflex2.getX = " << reflex2.x << endl;
-                cout << "reflex2.getY = " << reflex2.y << endl;
-
-                cout << "recepteur X = " << recepteur.x << endl;
-                cout << "recepteur Y = " << recepteur.y << endl;
-
-                cout << "image 1 X = " << image1.x << endl;
-                cout << "image 1 Y = " << image1.y << endl;
-
-                xImage1[i] = image1.x;
-                yImage1[i] = image1.y;
-                xImage2[i][j] = image2.x;
-                yImage2[i][j] = image2.y;
-
-                xReflex1[i] = reflex1.x;
-                yReflex1[i] = reflex1.y;
-                xReflex2[i] = reflex2.x;
-                yReflex2[i] = reflex2.y;
-                cout << "xReflex = " << xReflex1[i] << endl;
                 for (int k = 0; k < 3; k++) {
                     if (k != j) {
-                        cout << "i, j, k = " << i << ", " << j << ", " << k << endl;
-                        Object image3 = walls[k].image(image2);
-                        Object reflex31 = walls[k].reflexP(recepteur, image2);
-                        Object reflex32 = walls[j].reflexP(reflex31, image1);
-                        Object reflex33 = walls[i].reflexP(reflex32, emetteur);
 
-
-
-                        xImage3[i][j][k] = image3.x; //+ de 3 images
-                        yImage3[i][j][k] = image3.y;
-
-                        //cout << "xImage3 = " << xImage3[i][j][k] << endl;
-                        //cout << "yImage3 = " << yImage3[i][j][k] << endl;
-
-                        xReflex31[i][j][k] = reflex31.x;
-                        yReflex31[i][j][k] = reflex31.y;
-                        xReflex32[i][j][k] = reflex32.x;
-                        yReflex32[i][j][k] = reflex32.y;
-                        xReflex33[i][j][k] = reflex33.x;
-                        yReflex33[i][j][k] = reflex33.y;
-
-                        cout << "xReflex31 = " << xReflex31[i][j][k] << endl;
-                        cout << "yReflex31 = " << yReflex31[i][j][k] << endl;
-                        cout << "xReflex32 = " << xReflex32[i][j][k] << endl;
-                        cout << "yReflex32 = " << yReflex32[i][j][k] << endl;
-                        cout << "xReflex33 = " << xReflex33[i][j][k] << endl;
-                        cout << "yReflex33 = " << yReflex33[i][j][k] << endl;
+                        image3[i][j][k] = walls[k].image(image2[i][j]);
+                        reflex3[i][j][k][0] = walls[k].refP(recepteur, image2[i][j]);
+                        reflex3[i][j][k][1] = walls[j].refP(image1[i], reflex3[i][j][k][0]);
+                        reflex3[i][j][k][2] = walls[i].refP(reflex3[i][j][k][1], emetteur);
 
                     }
-                    
                 }
             }
         }
@@ -310,64 +206,56 @@ int main(int argc, char* argv[]) {
         
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(renderer);
+
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+        line(recepteur, emetteur);
+
+        SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+        point(recepteur);
+
+        SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
+        point(emetteur);
         
         for (int i = 0; i < 3; i++) {
 
             SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
-            point(xei[i], yei[i]);
-
-            
-
+            point(image1[i]);
             SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-            line(x1murs[i], y1murs[i], x2murs[i], y2murs[i]);
+            line(walls[i].X, walls[i].X2);
 
-            if (trueReflex[i]) { //à changer
+            if (walls[i].isReflected(recepteur, emetteur)) {
                 SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
-                line(xr, yr, xReflex[i], yReflex[i]);
-                line(xe, ye, xReflex[i], yReflex[i]);
-                for (int j = 0; j < 3; j++) {
-                    if (j != i) {
+                line(recepteur, reflex1[i]);
+                line(emetteur, reflex1[i]);
+            }
+            for (int j = 0; j < 3; j++) {
+                if (j != i) {
+                    if (walls[j].isReflected(recepteur, reflex2[i][j][1]) && walls[i].isReflected(reflex2[i][j][0], emetteur)) {
                         SDL_SetRenderDrawColor(renderer, 0xFF, 0x88, 0x00, 0xFF);
-                        point(xImage1[i], yImage1[i]);
-                        point(xImage2[i][j], yImage2[i][j]);
-                        line(xe, ye, xReflex2[i], yReflex2[i]);
-                        line(xr, yr, xReflex1[i], yReflex1[i]);
-                        line(xReflex1[i], yReflex1[i], xReflex2[i], yReflex2[i]);
-                        
-                        /*for (int k = 0; k < 3; k++) {
-                            if (k != j && i == 2) {
-                                cout << "i, j, k = " << i << ", " << j << ", " << k << endl;
-                                SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-                                line(xe, ye, xReflex33[i][j][k], yReflex33[i][j][k]);
-                                line(xReflex32[i][j][k], yReflex32[i][j][k], xReflex33[i][j][k], yReflex33[i][j][k]);
-                                line(xReflex32[i][j][k], yReflex32[i][j][k], xReflex31[i][j][k], yReflex31[i][j][k]);
-                                line(xr, yr, xReflex31[i][j][k], yReflex31[i][j][k]);
-                            }
-                        }*/
+                        point(image2[i][j]);
+                        line(emetteur, reflex2[i][j][1]);
+                        line(reflex2[i][j][1], reflex2[i][j][0]);
+                        line(reflex2[i][j][0], recepteur);
                     }
                     
+
+                    for (int k = 0; k < 3; k++) {
+                        if (k != j) {
+                            if (walls[k].isReflected(recepteur, reflex3[i][j][k][1]) && walls[j].isReflected(reflex3[i][j][k][0], reflex3[i][j][k][2]) && walls[i].isReflected(reflex3[i][j][k][1], emetteur)) {
+                                cout << "i, j, k = " << i << ", " << j << ", " << k << endl;
+                                SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+                                line(emetteur, reflex3[i][j][k][2]);
+                                line(reflex3[i][j][k][2], reflex3[i][j][k][1]);
+                                line(reflex3[i][j][k][1], reflex3[i][j][k][0]);
+                                line(reflex3[i][j][k][0], recepteur);
+                            }
+                        }
+                    }
                 }
             }
-
-            SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0xFF, 0xFF);
-            point(xei[i], yei[i]);
             
         }
-
-
-
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
-        line(xr, yr, xe, ye);
-
-
-        SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
-        point(xr, yr);
-
-        SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
-        point(xe, ye);
-
         SDL_RenderPresent(renderer);
-
         while (!quit) {
             while (SDL_PollEvent(&e) != 0) {
                 if (e.type == SDL_QUIT) {
