@@ -14,15 +14,11 @@ public:
     Object interP(Object p1, Object p2);    //renvoie le point d'intersection entre le mur et la droite passant par p1 et p2
     Object refP(Object p1, Object p2);      //renvoie le point de réflexion sur le mur des points p1 et p2
     double cos_i(Object p1, Object p2);     //renvoie cos_theta_i
-    double sin_i(double cos_i);             //renvoie sin_theta_i
-    double sin_t(double sin_i);             //renvoie sin_theta_t
-    double cos_t(double sin_t);             //renvoie cos_theta_t
+    complex<double> ref_perp(double cos_i); //renvoie le coefficient de rélfexion pour la polarisation perpendiculaire
     complex<double> we(double cos_i);
-    complex<double> transmission(complex<double> ref_perp, double cos_i); //renvoie la valeur du coefficient de transmission
-    complex<double> reflection(complex<double> ref_perp, double cos_i);   //renvoie la valeur du coefficient de réflexion
+    complex<double> transmission(double cos_i); //renvoie le coefficient de transmission à travers le mur
+    complex<double> reflection(double cos_i);   //renvoie le coefficient de réflexion sur le mur
     
-
-
     double length;    //longueur du mur
     double angle;     //angle du mur par rapport à l'axe des abscisses
     double thickness; //épaisseur du mur
@@ -37,9 +33,6 @@ public:
     Object n;         //vecteur normal normalisé
     Object u;         //vecteur directeur normalisé
 
-    double omega;            //pulsation de l'onde
-    double beta;             //nombre d'onde dans le vide
-    complex<double> j;       //unité imaginaire
     double alpha_m;          //alpha_m correspondant au mur
     double beta_m;           //beta_m correspondant au mur
     complex<double> gamma_m; //gamma_m correspondant au mur

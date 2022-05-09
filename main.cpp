@@ -5,99 +5,34 @@
 #include "Wall.h"
 #include <SDL.h>
 #include <stdio.h>
-#define epsR 4.8
-#define sigma 0.018
-#define thickness 0.15
-#define Z_0 377
-#define mu_0 0.000001256637
-#define eps_0 0.000000000008854187
-#define c 299792458
-#define Ra 73
+#include "Constants.h"
 
 using namespace std;
 
 const int SCREEN_WIDTH = 1200;
 const int SCREEN_HEIGHT = 900;
-complex<double> j(0, 1.0);            //nombre imaginaire j
-double omega = 868300000 * 2 * M_PI;  //pulsation de l'onde
-double lambda = 2 * M_PI * c / omega; //longueur d'onde
-double beta = omega / c;              //nombre d'onde dans le vide
-double eps = epsR * eps_0;            //epsilon
-complex<double> Z_m = sqrt(mu_0 / (eps - j * sigma / omega)); //Z_m
-
-double ptxgtx = 0.00164;
-
-//Calculs pour déterminer gamma_m
-double whatever = sigma / (omega * eps);
-double whatever2 = sqrt(1 + whatever * whatever);
-double whatever3 = omega * sqrt(mu_0 * eps / 2);
-double alpha_m = whatever3 * sqrt(whatever2 - 1);
-double beta_m = whatever3 * sqrt(whatever2 + 1);
-complex<double> gamma_m(alpha_m, beta_m);
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
 
-double reflexion(Object point1, Object point2, Wall mur) {
-
-    double xi = point1.x;
-    double yi = point1.y;
-    double dx = point2.x - xi;
-    double dy = point2.y - yi;
-    double d = sqrt(dx * dx + dy * dy);
-    double cos_theta_i = abs((dx * mur.n.x + dy * mur.n.y) / d);
-    double sin_theta_i = sqrt(1 - cos_theta_i * cos_theta_i);
-    double sin_theta_t = sqrt(1 / epsR) * sin_theta_i;
-    double cos_theta_t = sqrt(1 - sin_theta_t * sin_theta_t);
-    double s = thickness / cos_theta_t;
-
-
-    complex<double> whatever4 = Z_m * cos_theta_i;
-    complex<double> whatever5 = Z_0 * cos_theta_t;
-    auto ref_perp = (whatever4 - whatever5) / (whatever4 + whatever5);
-    auto ref_perp2 = ref_perp * ref_perp;
-    complex<double> we = exp(-2.0 * gamma_m * s) * exp(j * beta * 2.0 * s * sin_theta_t * sin_theta_i);
-    auto ref_m = ref_perp - (1.0 - ref_perp2) * (ref_perp * we) / (1.0 - ref_perp2 * we);
-    auto trans_m = (1.0 - ref_perp2) * exp(-gamma_m * s) / (1.0 - ref_perp2 * we);
-    auto E = trans_m * sqrt(60 * ptxgtx) * exp(-j * beta * d) / d;
-    double sum = norm(E);
-
-    double P = lambda * lambda / (8 * M_PI * M_PI * Ra) * sum;
-    /*cout << "Cos theta i  : " << cos_theta_i << endl;
-    cout << "sin_theta_i : " << sin_theta_i << endl;
-    cout << "sin_theta_t: " << sin_theta_t << endl;
-    cout << "Cos theta t : " << cos_theta_t << endl;
-
-    cout << "sum : " << sum << endl;
-    cout << "s : " << s << endl;
-    cout << "d : " << d << endl;
-    cout << "dy : " << dy << endl;
-    cout << "dx : " << dx << endl;
-    cout << "ref_perp : " << ref_perp << endl;
-    cout << "ref_m : " << ref_m << endl;
-    cout << "trans_m : " << trans_m << endl;
-    cout << "E : " << E << endl;
-    cout << "P : " << P << endl;*/
-    return P;
-}
-
-/*auto transmission(complex<double> ref_perp) {
-    auto ref_perp2 = ref_perp * ref_perp;
-    return (1.0 - ref_perp2) * exp(-gamma_m * s) / (1.0 - ref_perp2 * we);
-}
-
-double champ(complex<double> coeffs[]) {
+complex <double> champ(complex<double> coeffs[], int n, double d) {
     complex<double> coeff(1.0, 0.0);
-    for (int i = 0; i < *(&coeffs + 1) - coeffs; i++) {
-        coeff *= coeffs[i];
+    cout << "d = " << d << endl;
+    for (int i = 0; i < n; i++) {
+        coeff = coeff * coeffs[i];
+        cout << "Coeff = " << coeff << endl;
     }
     return coeff * sqrt(60 * ptxgtx) * exp(-j * beta * d) / d;
 }
 
-double puissance(complex<double> Es []) {
-    double sum = 0;
-    return lambda * lambda / (8 * M_PI * M_PI * Ra) * sum;
-}*/
+long double power(complex<double> Es [], int n) {
+    complex<double> sum = 0;
+    for (int i = 0; i < n; i++) {
+        sum += Es[i];
+        cout << "on ajoute" << endl;
+    }
+    return lambda * lambda / (8 * M_PI * M_PI * Ra) * norm(sum);
+}
 
 bool init() {
     bool success = true;
@@ -128,7 +63,7 @@ void close() {
     SDL_Quit();
 }
 
-double scale = 3;
+double scale = 4;
 
 void line(Object p1, Object p2) {
     SDL_RenderDrawLine(renderer, SCREEN_WIDTH / 2 + scale * p1.x, SCREEN_HEIGHT / 2 - scale * p1.y, SCREEN_WIDTH / 2 + scale * p2.x, SCREEN_HEIGHT / 2 - scale * p2.y);
@@ -142,8 +77,6 @@ void point(Object p) {
 }
 
 
-
-
 int main(int argc, char* argv[]) {
     
     cout << "Hello, World!" << endl;
@@ -153,13 +86,14 @@ int main(int argc, char* argv[]) {
     Wall wall2 = Wall(0, 20, 80, 0, thickness, epsR, sigma);
     Wall wall3 = Wall(0, 80, 80, 0, thickness, epsR, sigma);
     Wall walls[] = {wall1, wall2, wall3};
-
-    Object image = wall1.image(emetteur);
-    cout << "Mur 1 : " << endl;
-    double r = reflexion(image, recepteur, wall1);
-    cout << "Mur 2 : " << endl;
-    reflexion(emetteur, recepteur, wall2);
-
+    
+    Wall wallsPlane[] = {
+        Wall(0, 10, 31, 0, thickness, epsR, sigma),
+        Wall(31, 10, sqrt(2), 45, thickness, epsR, sigma),
+        Wall(32, 11, 6, 90, thickness, epsR, sigma),
+        Wall(32, 17, sqrt(2), 135, thickness, epsR, sigma),
+        Wall(31, 18, 31, 180, thickness, epsR, sigma)
+    };
     Object image1[3];
     Object image2[3][3];
     Object image3[3][3][3];
@@ -195,7 +129,20 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+    double cos_angle1 = walls[1].cos_i(emetteur, recepteur);
+    double cos_angle2 = walls[0].cos_i(image1[0], recepteur);
+    double cos_angle3 = walls[1].cos_i(emetteur, reflex1[0]);
+    cout << "Coeff trans 1" << walls[1].transmission(cos_angle1) << endl;
+    cout << "Cos i = " << cos_angle2 << ", coeff reflex 2 = " << walls[1].reflection(cos_angle2) << endl;
+    cout << "Cos i = " << cos_angle3 << ", coeff trans 2" << walls[1].transmission(cos_angle3) << endl;
+    complex<double> coeff1[1] = { walls[1].transmission(cos_angle1) };
+    complex<double> coeff2[2] = { walls[1].reflection(cos_angle2), walls[1].transmission(cos_angle3) };
 
+    complex<double> champ1 = champ(coeff1, 1, (recepteur - emetteur).norm());
+    complex<double> champ2 = champ(coeff2, 2, (recepteur - image1[0]).norm());
+    cout << "E1 = " << champ1 << ", E2 = " << champ2 << endl;
+    complex<double> champs[2] = { champ1, champ2 };
+    cout << "P = " << power(champs, 2) << endl;
 
     if (!init()) {
         printf("Failed to initialize !\n");
@@ -215,6 +162,10 @@ int main(int argc, char* argv[]) {
 
         SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
         point(emetteur);
+        
+        /*for (int i = 0; i < *(&wallsPlane + 1) - wallsPlane; i++) {
+            line(wallsPlane[i].X, wallsPlane[i].X2);
+        }*/
         
         for (int i = 0; i < 3; i++) {
 
