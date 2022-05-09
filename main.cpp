@@ -20,7 +20,7 @@ complex <double> champ(complex<double> coeffs[], int n, double d) {
     cout << "d = " << d << endl;
     for (int i = 0; i < n; i++) {
         coeff = coeff * coeffs[i];
-        cout << "Coeff = " << coeff << endl;
+        cout << "Coeff = " << coeffs[i] << endl;
     }
     return coeff * sqrt(60 * ptxgtx) * exp(-j * beta * d) / d;
 }
@@ -78,15 +78,15 @@ void point(Object p) {
 
 
 int main(int argc, char* argv[]) {
-    
+
     cout << "Hello, World!" << endl;
     Transmitter emetteur(32, 10);  //initialisation d'un emetteur
     Receiver recepteur(47, 65);    //initialisation d'un recepteur
     Wall wall1 = Wall(0, 0, 80, 90, thickness, epsR, sigma); //initialisation des murs
     Wall wall2 = Wall(0, 20, 80, 0, thickness, epsR, sigma);
     Wall wall3 = Wall(0, 80, 80, 0, thickness, epsR, sigma);
-    Wall walls[] = {wall1, wall2, wall3};
-    
+    Wall walls[] = { wall1, wall2, wall3 };
+
     Wall wallsPlane[] = {
         Wall(0, 10, 31, 0, thickness, epsR, sigma),
         Wall(31, 10, sqrt(2), 45, thickness, epsR, sigma),
@@ -102,47 +102,66 @@ int main(int argc, char* argv[]) {
     Object reflex2[3][3][2];
     Object reflex3[3][3][3][3];
 
+    int n_champs = 1;
 
-    
+    complex<double> champs[100];
+    complex<double> coeff[1] = { walls[1].transmission(walls[1].cos_i(emetteur, recepteur)) };
+    champs[0] = champ(coeff, 1, (recepteur - emetteur).norm());
+    cout << "Pas de réflexion : E = " << champs[0] << endl;
+
     for (int i = 0; i < 3; i++) {
-
         image1[i] = walls[i].image(emetteur);
         reflex1[i] = walls[i].refP(emetteur, recepteur);
-
+        if (walls[i].isReflected(recepteur, emetteur)) {
+            
+            double cos_i11 = walls[1].cos_i(emetteur, reflex1[i]);
+            double cos_i12 = walls[i].cos_i(image1[i], recepteur);
+            complex<double> coeff1[2] = { walls[1].transmission(cos_i11), walls[i].reflection(cos_i12) };
+            double d1 = (emetteur - reflex1[i]).norm() + (reflex1[i] - recepteur).norm();
+            champs[n_champs] = champ(coeff1, 2, d1);
+            cout << "i = " << i << ", E = " << champs[n_champs] << endl;
+            n_champs++;
+        }
         for (int j = 0; j < 3; j++) {
             if (j != i) {
-                
                 image2[i][j] = walls[j].image(image1[i]);
                 reflex2[i][j][0] = walls[j].refP(recepteur, image1[i]);
                 reflex2[i][j][1] = walls[i].refP(emetteur, reflex2[i][j][0]);
-
+                if (walls[j].isReflected(recepteur, reflex2[i][j][1]) && walls[i].isReflected(reflex2[i][j][0], emetteur)) {
+                    
+                    double cos_i21 = walls[1].cos_i(emetteur, reflex2[i][j][1]);
+                    double cos_i22 = walls[i].cos_i(image1[i], reflex2[i][j][0]);
+                    double cos_i23 = walls[j].cos_i(image2[i][j], recepteur);
+                    complex<double> coeff2[3] = { walls[1].transmission(cos_i21), walls[i].reflection(cos_i22), walls[j].reflection(cos_i23) };
+                    double d2 = (emetteur - reflex2[i][j][1]).norm() + (reflex2[i][j][1] - reflex2[i][j][0]).norm() + (reflex2[i][j][0] - recepteur).norm();
+                    champs[n_champs] = champ(coeff2, 3, d2);
+                    cout << "i = " << i << ", j = " << j << ", E = " << champs[n_champs] << endl;
+                    n_champs++;
+                }
                 for (int k = 0; k < 3; k++) {
                     if (k != j) {
-
                         image3[i][j][k] = walls[k].image(image2[i][j]);
                         reflex3[i][j][k][0] = walls[k].refP(recepteur, image2[i][j]);
                         reflex3[i][j][k][1] = walls[j].refP(image1[i], reflex3[i][j][k][0]);
                         reflex3[i][j][k][2] = walls[i].refP(reflex3[i][j][k][1], emetteur);
-
+                        if (walls[k].isReflected(recepteur, reflex3[i][j][k][1]) && walls[j].isReflected(reflex3[i][j][k][0], reflex3[i][j][k][2]) && walls[i].isReflected(reflex3[i][j][k][1], emetteur)) {
+                            
+                            double cos_i31 = walls[1].cos_i(emetteur, reflex3[i][j][k][2]);
+                            double cos_i32 = walls[i].cos_i(image1[i], reflex3[i][j][k][1]);
+                            double cos_i33 = walls[j].cos_i(image2[i][j], reflex3[i][j][k][0]);
+                            double cos_i34 = walls[k].cos_i(image3[i][j][k], recepteur);
+                            complex<double> coeff3[4] = { walls[1].transmission(cos_i31), walls[i].reflection(cos_i32), walls[j].reflection(cos_i33), walls[k].reflection(cos_i34) };
+                            double d3 = (emetteur - reflex3[i][j][k][2]).norm() + (reflex3[i][j][k][2] - reflex3[i][j][k][1]).norm() + (reflex3[i][j][k][1] - reflex3[i][j][k][0]).norm() + (reflex3[i][j][k][0] - recepteur).norm();
+                            champs[n_champs] = champ(coeff3, 4, d3);
+                            cout << "i = " << i << ", j = " << j << ", k = " << k << ", E = " << champs[n_champs] << endl;
+                            n_champs++;
+                        }
                     }
                 }
             }
         }
     }
-    double cos_angle1 = walls[1].cos_i(emetteur, recepteur);
-    double cos_angle2 = walls[0].cos_i(image1[0], recepteur);
-    double cos_angle3 = walls[1].cos_i(emetteur, reflex1[0]);
-    cout << "Coeff trans 1" << walls[1].transmission(cos_angle1) << endl;
-    cout << "Cos i = " << cos_angle2 << ", coeff reflex 2 = " << walls[1].reflection(cos_angle2) << endl;
-    cout << "Cos i = " << cos_angle3 << ", coeff trans 2" << walls[1].transmission(cos_angle3) << endl;
-    complex<double> coeff1[1] = { walls[1].transmission(cos_angle1) };
-    complex<double> coeff2[2] = { walls[1].reflection(cos_angle2), walls[1].transmission(cos_angle3) };
-
-    complex<double> champ1 = champ(coeff1, 1, (recepteur - emetteur).norm());
-    complex<double> champ2 = champ(coeff2, 2, (recepteur - image1[0]).norm());
-    cout << "E1 = " << champ1 << ", E2 = " << champ2 << endl;
-    complex<double> champs[2] = { champ1, champ2 };
-    cout << "P = " << power(champs, 2) << endl;
+    cout << "P = " << power(champs, n_champs) << endl;
 
     if (!init()) {
         printf("Failed to initialize !\n");
@@ -150,7 +169,7 @@ int main(int argc, char* argv[]) {
     else {
         bool quit = false;
         SDL_Event e;
-        
+
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(renderer);
 
@@ -162,11 +181,11 @@ int main(int argc, char* argv[]) {
 
         SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
         point(emetteur);
-        
+
         /*for (int i = 0; i < *(&wallsPlane + 1) - wallsPlane; i++) {
             line(wallsPlane[i].X, wallsPlane[i].X2);
         }*/
-        
+
         for (int i = 0; i < 3; i++) {
 
             SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0xFF, 0xFF);
@@ -178,7 +197,7 @@ int main(int argc, char* argv[]) {
                 SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
                 line(recepteur, reflex1[i]);
                 line(emetteur, reflex1[i]);
-            }
+            }/*
             for (int j = 0; j < 3; j++) {
                 if (j != i) {
                     if (walls[j].isReflected(recepteur, reflex2[i][j][1]) && walls[i].isReflected(reflex2[i][j][0], emetteur)) {
@@ -188,7 +207,7 @@ int main(int argc, char* argv[]) {
                         line(reflex2[i][j][1], reflex2[i][j][0]);
                         line(reflex2[i][j][0], recepteur);
                     }
-                    
+
 
                     for (int k = 0; k < 3; k++) {
                         if (k != j) {
@@ -203,8 +222,8 @@ int main(int argc, char* argv[]) {
                         }
                     }
                 }
-            }
-            
+            }*/
+
         }
         SDL_RenderPresent(renderer);
         while (!quit) {
