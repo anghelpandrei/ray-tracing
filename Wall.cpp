@@ -10,7 +10,6 @@ using namespace std;
 
 double Wall::cos_i(Object p1, Object p2) {
     Object d = p2 - p1;
-
     return abs(d.dotP(n) / d.norm());
 }
 
