@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "Constants.h"
 
+// Je suis moi
 using namespace std;
 
 const int SCREEN_WIDTH = 1200;
