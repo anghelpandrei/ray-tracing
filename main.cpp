@@ -15,12 +15,13 @@ const int SCREEN_HEIGHT = 900;
 
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
-double scale = 4;
-int RENDER_X0 = SCREEN_WIDTH / 2;
-int RENDER_Y0 = SCREEN_HEIGHT / 2;
+double scale = 25.0;
+int RENDER_X0 = SCREEN_WIDTH / 3;
+int RENDER_Y0 = SCREEN_HEIGHT / 1.5;
 
 void line(Object p1, Object p2) {
-    SDL_RenderDrawLine(renderer, RENDER_X0 + scale * p1.x, RENDER_Y0 - scale * p1.y, RENDER_X0 + scale * p2.x, RENDER_Y0 - scale * p2.y);
+    printf("Coordonnées x1 = %f, y1 = %f, x2 = %f, y2 = %f\n", p1.x, p1.y, p2.x, p2.y);
+    SDL_RenderDrawLine(renderer, RENDER_X0 + round(scale * p1.x), RENDER_Y0 - round(scale * p1.y), RENDER_X0 + round(scale * p2.x), RENDER_Y0 - round(scale * p2.y));
     //SDL_RenderDrawLine(renderer, x1, - y1,  x2,  y2);
 }
 void point(Object p) {
@@ -29,7 +30,7 @@ void point(Object p) {
     //SDL_RenderDrawPoint(renderer, SCREEN_WIDTH / 2 + scale * x, SCREEN_HEIGHT / 2 - scale * y);
 }
 void area(Object p) {
-    SDL_Rect r = { RENDER_X0 + scale * p.x - 5, RENDER_Y0 - scale * p.y - 5, 10, 10 };
+    SDL_Rect r = { RENDER_X0 + scale * p.x - 5, RENDER_Y0 - scale * p.y - 5, 0.2*scale, 0.2*scale };
     SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x88, 0xFF);
     SDL_RenderFillRect(renderer, &r);
 }
@@ -114,11 +115,73 @@ int main(int argc, char* argv[]) {
     cout << "Hello, World!" << endl;
 
     Wall wallsPlane[] = {
-        Wall(0, 10, 31, 0, thickness, epsR, sigma),
-        Wall(31, 10, sqrt(2), 45, thickness, epsR, sigma),
-        Wall(32, 11, 6, 90, thickness, epsR, sigma),
-        Wall(32, 17, sqrt(2), 135, thickness, epsR, sigma),
-        Wall(31, 18, 31, 180, thickness, epsR, sigma)
+        //PAROIS EXTERIEURES DE L'AVION
+        Wall(0, 10, 31, 0, thickness_plane, epsR_GRP, sigma_GRP),
+        Wall(31, 10, sqrt(2), 45, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(32, 11, 6, 90, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(32, 17, sqrt(2), 135, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(31, 18, 31, 180, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(0, 18, 3.991435693, 183.75,thickness_plane,epsR_GRP,sigma_GRP),
+         Wall(-4, 17.73838748, 2.974334584,187.5,thickness_plane,epsR_GRP,sigma_GRP),//1
+         Wall(-7,17.3468089, 1.931851653, 195, thickness_plane,epsR_GRP,sigma_GRP),//2
+         Wall(-9, 16.82917081, 1.299038106, 210, thickness_plane,epsR_GRP,sigma_GRP),//3
+         Wall(-10.5, 16.07917081, 0.7071067812, 225,thickness_plane,epsR_GRP,sigma_GRP),//4
+         Wall(-11.5, 15.37206403, 0.25, 240,thickness_plane,epsR_GRP,sigma_GRP),//5
+         Wall(-12,15, 1.878, 270, thickness_plane,epsR_GRP,sigma_GRP),//6
+         Wall(-12, 13.06105133, 0.25, 300, thickness_plane, epsR_GRP, sigma_GRP),//7
+         Wall(-11.5, 12.79943881, 0.7071067812, 315, thickness_plane, epsR_GRP, sigma_GRP),//8
+         Wall(-10.5, 12.407086024, 1.299038106, 330, thickness_plane, epsR_GRP, sigma_GRP),//9
+         Wall(-9, 11.89022215, 1.299038106, 345, thickness_plane, epsR_GRP, sigma_GRP),//10
+         Wall(-7, 11.14022215, 1.931851653, 352.5, thickness_plane, epsR_GRP, sigma_GRP),//11
+         Wall(-4, 10.4331537, 2.974334584, 356.25, thickness_plane, epsR_GRP, sigma_GRP),//12
+         Wall(0, 10, 3.991435693, 360, thickness_plane, epsR_GRP, sigma_GRP),//13
+
+         //PAROIS INTERIEURES DE L'AVION
+         Wall(-4, 10.4331537, 7.454, 90, thickness_plane, epsR_GRP, sigma_GRP),//12
+         Wall(0, 10, 3, 90, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(0, 18, 3, 270, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(8, 10, 3, 90, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(8, 18, 3, 270, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(26, 10, 3, 90, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(26, 18, 3, 270, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(28, 10, 3, 90, thickness_plane, epsR_GRP, sigma_GRP),
+         Wall(28, 18, 3, 270, thickness_plane, epsR_GRP, sigma_GRP),
+
+         //SIEGES 1ERE CLASSE HAUT
+         Wall(2, 10 , 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(4, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(6, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+
+         //SIEGES 1ERE CLASSE BAS
+         Wall(2, 18 , 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(4, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(6, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+
+         //SIEGES 2EME CLASSE HAUT
+         Wall(10, 10 , 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(11.5, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(13, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(14.5, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(16, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(17.5, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(19, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(20.5, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(22, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(23.5, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+         Wall(25, 10, 3, 90, thickness_plane, epsR_plast, sigma_plast),
+
+         //SIEGES 2EME CLASSE BAS
+         Wall(10, 18 , 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(11.5, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(13, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(14.5, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(16, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(17.5, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(19, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(20.5, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(22, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(23.5, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
+         Wall(25, 18, 3, 270, thickness_plane, epsR_plast, sigma_plast),
     };
     Object image1[3];
     Object image2[3][3];
@@ -153,9 +216,14 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
         point(emetteur);
 
-        /*for (int i = 0; i < *(&wallsPlane + 1) - wallsPlane; i++) {
+        for (int i = 0; i < *(&wallsPlane + 1) - wallsPlane; i++) {
+            SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
             line(wallsPlane[i].X, wallsPlane[i].X2);
-        }*/
+            SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+            point(wallsPlane[i].X);
+            SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+            point(wallsPlane[i].X2);
+        }
 
         for (int i = 0; i < 3; i++) {
 

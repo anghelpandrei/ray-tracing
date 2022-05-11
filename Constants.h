@@ -16,4 +16,10 @@ const double omega = freq * 2 * M_PI; //pulsation de l'onde
 const double lambda = c / freq; //longueur d'onde
 const double beta = omega / c;
 const double ptxgtx = 0.00164;
+
+const double epsR_GRP = 8.7;
+const double epsR_plast = 2.25;
+const double sigma_GRP = 0.868;
+const double sigma_plast = 0.003;
+const double thickness_plane = 0.1;
 #endif
