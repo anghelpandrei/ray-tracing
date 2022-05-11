@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
                 SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
                 line(recepteur, reflex1[i]);
                 line(emetteur, reflex1[i]);
-            }/*
+            }
             for (int j = 0; j < 3; j++) {
                 if (j != i) {
                     if (walls[j].isReflected(recepteur, reflex2[i][j][1]) && walls[i].isReflected(reflex2[i][j][0], emetteur)) {
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
                         }
                     }
                 }
-            }*/
+            }
 
         }
         SDL_RenderPresent(renderer);
