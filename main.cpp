@@ -8,6 +8,7 @@
 #include "Constants.h"
 #include <chrono>
 
+// Je suis moi
 using namespace std;
 
 const int SCREEN_WIDTH = 1200;
@@ -20,7 +21,7 @@ int RENDER_X0 = SCREEN_WIDTH / 3;
 int RENDER_Y0 = SCREEN_HEIGHT / 1.5;
 
 void line(Object p1, Object p2) {
-    printf("Coordonnées x1 = %f, y1 = %f, x2 = %f, y2 = %f\n", p1.x, p1.y, p2.x, p2.y);
+    printf("CoordonnÃ©es x1 = %f, y1 = %f, x2 = %f, y2 = %f\n", p1.x, p1.y, p2.x, p2.y);
     SDL_RenderDrawLine(renderer, RENDER_X0 + round(scale * p1.x), RENDER_Y0 - round(scale * p1.y), RENDER_X0 + round(scale * p2.x), RENDER_Y0 - round(scale * p2.y));
     //SDL_RenderDrawLine(renderer, x1, - y1,  x2,  y2);
 }
