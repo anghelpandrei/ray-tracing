@@ -1,11 +1,11 @@
 #include "Object.h"
 #include <cmath>
 
-double Object::dotP(Object vec) {
+double Object::dotP(Object& vec) {
     return x * vec.x + y * vec.y;
 }
 
-Object Object::crossP(Object vec) {
+Object Object::crossP(Object& vec) {
     return Object(vec.y - y, x - vec.x);
 }
 
@@ -14,7 +14,8 @@ double Object::norm() {
 }
 
 Object::Object() {
-
+    x = 0;
+    y = 0;
 }
 
 Object::Object(double x, double y) {
@@ -43,4 +44,9 @@ Object operator*(const double& scal, const Object& obj)
 Object operator/(const Object& obj, const double& scal)
 {
     return Object(obj.x / scal, obj.y / scal);
+}
+
+std::ostream& operator<<(std::ostream& ostream, const Object& obj) {
+    ostream << "x = " << obj.x << ", y = " << obj.y;
+    return ostream;
 }

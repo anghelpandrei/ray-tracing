@@ -1,6 +1,7 @@
 // Constants.h
 #if !defined(MYLIB_CONSTANTS_H)
 #define MYLIB_CONSTANTS_H 1
+#include <SDL_stdinc.h>
 
 const double epsR = 4.8;
 const double sigma = 0.018;

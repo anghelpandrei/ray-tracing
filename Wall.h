@@ -9,15 +9,10 @@ public:
 
     Wall(double x, double y, double length, double angle, double thickness, double epsR, double sigma);
     
-    bool isReflected(Object p1, Object p2); //renvoie true si la réflexion est possible (2 points du même côté du mur + point de réflexion sur le mur)
-    Object image(Object p);                 //renvoie l'image d'un point p par symétrie axiale avec le mur
-    Object interP(Object p1, Object p2);    //renvoie le point d'intersection entre le mur et la droite passant par p1 et p2
-    Object refP(Object p1, Object p2);      //renvoie le point de réflexion sur le mur des points p1 et p2
-    double cos_i(Object p1, Object p2);     //renvoie cos_theta_i
-    complex<double> ref_perp(double cos_i); //renvoie le coefficient de rélfexion pour la polarisation perpendiculaire
-    complex<double> we(double cos_i);
-    complex<double> transmission(double cos_i); //renvoie le coefficient de transmission à travers le mur
-    complex<double> reflection(double cos_i);   //renvoie le coefficient de réflexion sur le mur
+    Object image(const Object& p);                 //renvoie l'image d'un point p par symétrie axiale avec le mur
+    bool inter(const Object& p1, const Object& p2, Object& interP);    //renvoie le point d'intersection entre le mur et la droite passant par p1 et p2
+    complex<double> transmission(const Object& p1, const Object& p2); //renvoie le coefficient de transmission à travers le mur
+    complex<double> reflection(const Object& p1, const Object& p2);   //renvoie le coefficient de réflexion sur le mur
     
     double length;    //longueur du mur
     double angle;     //angle du mur par rapport à l'axe des abscisses

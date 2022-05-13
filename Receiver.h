@@ -6,6 +6,7 @@
 
 class Receiver : public Object {
 public:
+	Receiver() = default;
 	Receiver(double x, double y);
 };
 
