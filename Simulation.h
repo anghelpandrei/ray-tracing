@@ -1,9 +1,9 @@
 #include "Constants.h"
-Transmitter emetteur(32, 10);  //initialisation d'un emetteur
-Receiver recepteur(47, 65);    //initialisation d'un recepteur
+Object emetteur(32, 10);  //initialisation d'un emetteur
+Object recepteur(47, 65);    //initialisation d'un recepteur
 
-Transmitter emetteur1(7, 17);
-Transmitter emetteur2(29, 11);
+Object emetteur1(7, 17);
+Object emetteur2(29, 11);
 
 Wall wall1(0, 0, 80, 90, thickness, epsR, sigma); //initialisation des murs
 Wall wall2(0, 20, 80, 0, thickness, epsR, sigma);

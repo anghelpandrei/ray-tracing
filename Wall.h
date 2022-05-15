@@ -11,6 +11,7 @@ public:
     
     Object image(const Object& p);                 //renvoie l'image d'un point p par symétrie axiale avec le mur
     bool inter(const Object& p1, const Object& p2, Object& interP);    //renvoie le point d'intersection entre le mur et la droite passant par p1 et p2
+    bool inter2(const Object& p1, const Object& p2);    //renvoie le point d'intersection entre le mur et la droite passant par p1 et p2
     complex<double> transmission(const Object& p1, const Object& p2); //renvoie le coefficient de transmission à travers le mur
     complex<double> reflection(const Object& p1, const Object& p2);   //renvoie le coefficient de réflexion sur le mur
     

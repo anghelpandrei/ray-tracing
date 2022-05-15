@@ -7,7 +7,6 @@ class Object {
 public:
     Object();                  //constructeur par défaut (utile pour initialiser des listes)
     double dotP(Object& vec);   //produit scalaire
-    Object crossP(Object& vec); //produit vectoriel
     double norm();             //norme d'un vecteur
     double x;                  //position X du centre de l'objet
     double y;                  //position Y du centre de l'objet

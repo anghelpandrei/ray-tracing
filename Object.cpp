@@ -5,10 +5,6 @@ double Object::dotP(Object& vec) {
     return x * vec.x + y * vec.y;
 }
 
-Object Object::crossP(Object& vec) {
-    return Object(vec.y - y, x - vec.x);
-}
-
 double Object::norm() {
     return sqrt(x * x + y * y);
 }
