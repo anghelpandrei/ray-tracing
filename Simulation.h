@@ -1,17 +1,17 @@
 #include "Constants.h"
-Object emetteur(32, 10);  //initialisation d'un emetteur
-Object recepteur(47, 65);    //initialisation d'un recepteur
+Vector2 emetteurTP8(32, 10);    //emetteur du TP8
+Vector2 recepteurTP8(47, 65);   //recepteur du TP8
 
-Object emetteur1(7, 17);
-Object emetteur2(29, 11);
+Vector2 emetteur1(7, 17);    //emetteurs de l'avion
+Vector2 emetteur2(29, 11);
 
-Wall wall1(0, 0, 80, 90, thickness, epsR, sigma); //initialisation des murs
-Wall wall2(0, 20, 80, 0, thickness, epsR, sigma);
-Wall wall3(0, 80, 80, 0, thickness, epsR, sigma);
-Wall walls[] = { wall1, wall2, wall3 };
+Wall walls[] = { 
+    Wall(0, 0, 80, 90, thickness, epsR, sigma),
+    Wall(0, 20, 80, 0, thickness, epsR, sigma),
+    Wall(0, 80, 80, 0, thickness, epsR, sigma),
+};
+
 const int n_walls = 55;
-
-
 Wall wallsPlane[] = {
     //PAROIS EXTERIEURES DE L'AVION
     Wall(0, 10, 31, 0, thickness_plane, epsR_GRP, sigma_GRP),
