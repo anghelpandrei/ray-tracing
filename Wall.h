@@ -32,9 +32,7 @@ public:
    
     double ux;        //composantes du vecteur directeur du mur
     double uy;
-
-    double alpha_m;          //alpha_m correspondant au mur
-    double beta_m;           //beta_m correspondant au mur
+    
     complex<double> gamma_m; //gamma_m correspondant au mur
     complex<double> Z_m;     //Z_m correspondant au mur
 };
