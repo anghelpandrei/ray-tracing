@@ -1,8 +1,6 @@
 #include <iostream>
 #include <complex> 
 #include <vector>
-#include "Transmitter.h"
-#include "Receiver.h"
 #include "Wall.h"
 #include "Simulation.h"
 #include <SDL.h>
@@ -12,30 +10,115 @@
 
 using namespace std;
 
-const int SCREEN_WIDTH = 1200;
-const int SCREEN_HEIGHT = 900;
+
+/*
+On introduit les différents paramètres pour l'affichage de l'avion
+*/
+const int SCREEN_WIDTH = 1200; // Largeur de la fenêtre
+const int SCREEN_HEIGHT = 900; // Hauteur de la fenêtre
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
-double scale = 25.0;
-int RENDER_X1 = SCREEN_WIDTH / 2;
-int RENDER_Y1 = SCREEN_HEIGHT / 2;
-int RENDER_X0 = SCREEN_WIDTH / 3.3;
-int RENDER_Y0 = SCREEN_HEIGHT / 3;
+double scaleValue = 25.0;
+double &scale = scaleValue; // Echelle de visualisation  
+int RENDER_X0 = SCREEN_WIDTH / 2;
+int RENDER_Y0 = SCREEN_HEIGHT / 2;
+double x_length = 44;
+double y_length = 8;
+double side_length = 0.2;
+int x_dots = round(x_length / side_length);
+int y_dots = round(y_length / side_length);
+double offsetxValue = 0;
+double offsetyValue = 0;
+double* offsetx = &offsetxValue;
+double* offsety = &offsetyValue;
 
 
-void line(const Object& p1, const Object& p2) {
-    SDL_RenderDrawLine(renderer, RENDER_X0 + floor(scale * p1.x), RENDER_Y0 + floor(scale * p1.y), RENDER_X0 + floor(scale * p2.x), RENDER_Y0 + floor(scale * p2.y));
+
+double red(const double power) {
+    if (power > 0.33) {
+        return 255.0;
+    }
+    return 255.0 * 3 * power;
 }
-void point(const Object& p) {
-    SDL_RenderDrawLine(renderer, RENDER_X0 + floor(scale * (p.x - 0.5)), RENDER_Y0 + floor(scale * (p.y - 0.5)), RENDER_X0 + floor(scale * (p.x + 0.5)), RENDER_Y0 + floor(scale * (p.y + 0.5)));
-    SDL_RenderDrawLine(renderer, RENDER_X0 + floor(scale * (p.x - 0.5)), RENDER_Y0 + floor(scale * (p.y + 0.5)), RENDER_X0 + floor(scale * (p.x + 0.5)), RENDER_Y0 + floor(scale * (p.y - 0.5)));
+
+double green(const double power) {
+    if (power > 0.75) {
+        return 255.0;
+    }
+    else if (power > 0.33) {
+        return 606.0 * power - 199.97;
+    }
+    return 0;
 }
-void area(const Object& p, double power) {
-    SDL_Rect r = { RENDER_X0 + floor(scale * (p.x - 0.4)), RENDER_Y0 + floor(scale * (p.y - 0.4)), floor(0.8*scale), floor(0.8*scale) };
-    SDL_SetRenderDrawColor(renderer, power*255.0, 0x00, 0x00, 0xFF);
+
+double blue(const double power) {
+    if (power > 0.75) {
+        return 1020.0 * power - 765.0;
+    }
+    return 0;
+}
+
+void line(const Vector2& p1, const Vector2& p2) {
+    SDL_RenderDrawLine(renderer, RENDER_X0 + round(scale * p1.x) + *offsetx, RENDER_Y0 + round(scale * p1.y) + *offsety, RENDER_X0 + round(scale * p2.x) + *offsetx, RENDER_Y0 + round(scale * p2.y) + *offsety);
+}
+
+void lineFade(double power) {
+    for (int i = 0; i < 255; i++) {
+        SDL_SetRenderDrawColor(renderer, red(i/255.0), green(i/255.0), blue(i/255.0), 0xFF);
+        SDL_RenderDrawLine(renderer, 50 + i, SCREEN_HEIGHT - 50, 50 + i, SCREEN_HEIGHT - 75);
+    }
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    SDL_RenderDrawLine(renderer, 50 + 255 * power, SCREEN_HEIGHT - 50, 50 + 255.0 * power, SCREEN_HEIGHT - 75);
+}
+
+void point(const Vector2& p) {
+    SDL_RenderDrawLine(renderer, RENDER_X0 + round(scale * (p.x - 0.5)) + *offsetx, RENDER_Y0 + round(scale * (p.y - 0.5)) + *offsety, RENDER_X0 + round(scale * (p.x + 0.5)) + *offsetx, RENDER_Y0 + round(scale * (p.y + 0.5)) + *offsety);
+    SDL_RenderDrawLine(renderer, RENDER_X0 + round(scale * (p.x - 0.5)) + *offsetx, RENDER_Y0 + round(scale * (p.y + 0.5)) + *offsety, RENDER_X0 + round(scale * (p.x + 0.5)) + *offsetx, RENDER_Y0 + round(scale * (p.y - 0.5)) + *offsety);
+}
+
+void area(const Vector2& p, double power) {
+    power = power < 0 ? 0.0001 : power;
+    SDL_Rect r = { RENDER_X0 + round(scale * (p.x - side_length)) + *offsetx, RENDER_Y0 + round(scale * (p.y - side_length)) + *offsety, round(2 * side_length * scale), round(2* side_length * scale) };
+    SDL_SetRenderDrawColor(renderer, red(power), green(power), blue(power), 0xFF);
     SDL_RenderFillRect(renderer, &r);
 }
+
+void cursor() {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderDrawLine(renderer, RENDER_X0 - 5, RENDER_Y0, RENDER_X0 + 5, RENDER_Y0);
+    SDL_RenderDrawLine(renderer, RENDER_X0, RENDER_Y0 - 5, RENDER_X0, RENDER_Y0 + 5);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderDrawLine(renderer, RENDER_X0 - 5, RENDER_Y0 - 1, RENDER_X0 - 1, RENDER_Y0 - 1);
+    SDL_RenderDrawLine(renderer, RENDER_X0 + 1, RENDER_Y0 - 1, RENDER_X0 + 5, RENDER_Y0 - 1);
+    SDL_RenderDrawLine(renderer, RENDER_X0 - 5, RENDER_Y0 + 1, RENDER_X0 - 1, RENDER_Y0 + 1);
+    SDL_RenderDrawLine(renderer, RENDER_X0 + 1, RENDER_Y0 + 1, RENDER_X0 + 5, RENDER_Y0 + 1);
+
+    SDL_RenderDrawLine(renderer, RENDER_X0 - 1, RENDER_Y0 - 5, RENDER_X0 - 1, RENDER_Y0 - 1);
+    SDL_RenderDrawLine(renderer, RENDER_X0 - 1, RENDER_Y0 + 1, RENDER_X0 - 1, RENDER_Y0 + 5);
+    SDL_RenderDrawLine(renderer, RENDER_X0 + 1, RENDER_Y0 - 5, RENDER_X0 + 1, RENDER_Y0 - 1);
+    SDL_RenderDrawLine(renderer, RENDER_X0 + 1, RENDER_Y0 + 1, RENDER_X0 + 1, RENDER_Y0 + 5);
+
+    SDL_RenderDrawLine(renderer, RENDER_X0 - 6, RENDER_Y0 - 1, RENDER_X0 - 6, RENDER_Y0 + 1);
+    SDL_RenderDrawLine(renderer, RENDER_X0 + 6, RENDER_Y0 - 1, RENDER_X0 + 6, RENDER_Y0 + 1);
+    SDL_RenderDrawLine(renderer, RENDER_X0 - 1, RENDER_Y0 - 6, RENDER_X0 + 1, RENDER_Y0 - 6);
+    SDL_RenderDrawLine(renderer, RENDER_X0 - 1, RENDER_Y0 + 6, RENDER_X0 + 1, RENDER_Y0 + 6);
+    //SDL_Point* contour = new SDL_Point[12];
+
+    //SDL_RenderDrawLines(renderer, contour, 12);
+    /*
+    SDL_RenderDrawPoint(renderer, RENDER_X0, RENDER_Y0 - 6);
+    SDL_RenderDrawPoint(renderer, RENDER_X0, RENDER_Y0 + 6);
+    SDL_RenderDrawPoint(renderer, RENDER_X0 - 6, RENDER_Y0);
+    SDL_RenderDrawPoint(renderer, RENDER_X0 + 6, RENDER_Y0);*/
+}
+
+
+
 bool init() {
+/*
+Cette fonction permet la création de la fenêtre via la librairie SDL  
+*/
     bool success = true;
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -56,6 +139,7 @@ bool init() {
     }
     return success;
 }
+
 void close() {
     SDL_DestroyWindow(window);
     SDL_DestroyRenderer(renderer);
@@ -64,128 +148,207 @@ void close() {
     SDL_Quit();
 }
 
-void field(complex<double>& field, complex<double>& coeff, double d, bool isLocal) {
-    complex<double> result = coeff * sqrt(60 * ptxgtx) * exp(-j * beta * d) / d;
-    if (isLocal) {
-        result = norm(result);
-    }
-    //cout << "champ = " << result << endl;
-    field = field + result;
-}
+const double sqrtptxgtxTP8 = sqrt(60.0 * 0.001 * 1.64);
+const double sqrtptxgtxPlane = sqrt(60.0 * 0.1 * 1.64);
 
-void transmission(Wall walls[], const int i, Object& p1, Object& p2, complex<double>& coeff) {
+
+
+void transmission(Wall *walls, const int i, const Vector2& p1, const Vector2& p2, complex<double>& coeff) {
+/*
+Cette fonction multiplie coeff par un coefficient de transmission. On peut également afficher le coefficient avant la multiplication
+*/
     complex<double> result = walls[i].transmission(p1, p2);
-    coeff = coeff * result;
+    coeff *= result;
     //cout << "Coeff de transmission du mur " << i << " = " << result << endl;
 }
 
-void reflection(Wall walls[], const int i, Object& p1, Object& p2, complex<double>& coeff) {
+void reflection(Wall *walls, const int i, const Vector2& p1, const Vector2& p2, complex<double>& coeff) {
+/*
+Cette fonction multiplie coeff par un coefficient de réflexion. On peut également afficher le coefficient avant la multiplication
+*/
     complex<double> result = walls[i].reflection(p1, p2);
-    coeff = coeff * result;
+    coeff *= result;
     //cout << "Coeff de reflexion du mur " << i << " = " << result << endl;
 }
 
 
-long double power(const complex<double>& field, bool isLocal) {
+double power(const complex<double>& field, bool isLocal) {
+/*
+Cette fonction permet de calculer la puissance perçue dans chaque zone locale  
+*/
     if (isLocal) {
-        return lambda * lambda / (8 * M_PI * M_PI * Ra) * real(field);
+        return lambda * lambda / (8 * M_PI * M_PI * Ra) * field.real();
     }
     return lambda * lambda / (8 * M_PI * M_PI * Ra) * norm(field);
 }
-double computation(Wall walls[], int n_walls, Transmitter& emetteur, Receiver& recepteur, bool isLocal) {
-    complex<double> coeff(1.0, 0.0);
-    Object hello;
+
+void field(complex<double>& field, const complex<double>& coeff, const double d, const bool isLocal) {
+    /*
+    Cette fonction permet de calculer la valeur du champ électrique selon si l'on considère le cas de l'avion ou le TP8
+    */
+    complex<double> result = coeff * exp(-j * beta * d) / d;
+    if (isLocal) {
+        result = norm(result * sqrtptxgtxPlane);
+    }
+    else {
+        result *= sqrtptxgtxTP8;
+        cout << "Puissance = " << power(result, false) << " W = " << 10*log10(power(result, false)/0.001) << " dBm" << endl;
+    }
+    //cout << "champ = " << result << endl;
+    field += result;
+}
+
+//complex<double> recursive(Wall* walls, int n_walls, Vector2& emetteur,
+//    Vector2& recepteur, bool isLocal, complex<double>& champ, int n, int n_max) {
+//    n++;
+//    for (int i = 0; i < n_walls; i++) {
+//        Vector2 reflex1;
+//        Vector2 image1 = walls[i].image(emetteur);
+//        complex<double> coeff(1.0, 0.0);
+//        if (walls[i].inter(image1, recepteur, reflex1)) {
+//            //cout << "Mur " << i << endl;
+//            reflection(walls, i, image1, recepteur, coeff);
+//            for (int j = 0; j < n_walls; j++) {
+//                if (i != j && walls[j].inter(reflex1, recepteur)) {
+//                    transmission(walls, j, reflex1, recepteur, coeff);
+//                }
+//            }
+//            for (int j = 0; j < n_walls; j++) {
+//                if (i != j && walls[j].inter(emetteur, reflex1)) {
+//                    transmission(walls, j, emetteur, reflex1, coeff);
+//                }
+//            }
+//            field(champ, coeff, (recepteur - image1).norm(), isLocal);
+//        }
+//        if (n < n_max) {
+//            recursive(walls, n_walls, emetteur, recepteur, isLocal, champ, n, n_max);
+//        }
+//        
+//    }
+//}
+
+complex<double> computation(Wall *walls, int n_walls, Vector2& emetteur, Vector2& recepteur, bool isLocal) {
+/*
+Cette fonction permet de calculer le champ électrique pour un émetteur et un récepteur 
+*/
+    complex<double> coeff(1.0, 0.0); //produit des coefficients de réflexion et de transmission
+    /*
+    * On calcule en premier lieu le champ électrique de l'onde directe.
+    * Pour ce faire, on vérifie quels murs cette onde intersecte et on multiplie coeff par le coefficient de tranmission correspondant
+    */
     for (int i = 0; i < n_walls; i++) {
-        if (walls[i].inter(emetteur, recepteur, hello)) {
+        if (walls[i].inter(emetteur, recepteur)) {
             transmission(walls, i, emetteur, recepteur, coeff);
         }
     }
-    complex<double> champ = 0;
+    complex<double> champ = 0; //champ électrique qui va être return à la fin de la fonction computation
     field(champ, coeff, (recepteur - emetteur).norm(), isLocal);
+    //cout << "Puissance = " << power(champ, false) << endl;
 
     for (int i = 0; i < n_walls; i++) {
-        Object reflex1;
-        Object image1 = walls[i].image(emetteur);
+        /* 
+        * Boucle pour une réflexion :
+        * Pour chaque mur, on calcule l'image de l'émetteur par celui-ci
+        * Ensuite on vérifie par quels murs il y a réflexion (en vérifiant s'il y a des intersections entre le mur et le vecteur image-récepteur)
+        * S'il y a réflexion, on calcule le coefficient de réflexion par le mur.
+        * Dans le cas de réflexion, on calcule aussi les différentes intersections possibles entre les murs et les différentes composantes de l'onde
+        * (dans ce cas, on regarde si l'onde partant de l'émetteur intersecte des murs jusqu'à arriver au point de réflexion, et aussi s'il y a des intersections
+        * en partant du point de réflexion vers le récepteur)
+        */
+        Vector2 reflex1;
+        Vector2 image1 = walls[i].image(emetteur);
         coeff = complex<double>(1.0, 0.0);
-        if (walls[i].inter(image1, recepteur, reflex1)) {
+        if (walls[i].inter(image1, recepteur, reflex1)) { //Lorsqu'elle a 3 arguments, la fonction inter fixe la valeur du point d'intersection dans le 3ème argument
+            //cout << "Mur " << i << endl;
             reflection(walls, i, image1, recepteur, coeff);
             for (int j = 0; j < n_walls; j++) {
-                if (i != j && walls[j].inter(reflex1, recepteur, hello)) {
+                /*
+                * i != j permet de vérifier qu'on ne calcule pas accidentellement le coefficient de transmission
+                * de l'onde avec le mur où il y a la réflexion
+                */
+                if (i != j && walls[j].inter(reflex1, recepteur)) { 
                     transmission(walls, j, reflex1, recepteur, coeff);
                 }
             }
             for (int j = 0; j < n_walls; j++) {
-                if (i != j && walls[j].inter(emetteur, reflex1, hello)) {
+                if (i != j && walls[j].inter(emetteur, reflex1)) {
                     transmission(walls, j, emetteur, reflex1, coeff);
                 }
             }
-            field(champ, coeff, (recepteur - image1).norm(), isLocal);
+            field(champ, coeff, (recepteur - image1).norm(), isLocal); //la distance parcourue par l'onde est la norme entre le récepteur et l'image
+            //cout << "Puissance = " << power(champ, false) << endl;
         }
-        for (int j = 0; j < n_walls; j++) {
-            if (j != i) {
-                Object reflex20;
-                Object reflex21;
-                coeff = complex<double>(1.0, 0.0);
-                Object image2 = walls[j].image(image1);
-                if (walls[j].inter(image2, recepteur, reflex20) && walls[i].inter(image1, reflex20, reflex21)) {
-                    reflection(walls, j, image2, recepteur, coeff);
-                    reflection(walls, i, image1, reflex20, coeff);
-                    for (int k = 0; k < n_walls; k++) {
-                        if (k != j && walls[k].inter(reflex20, recepteur, hello)) {
-                            transmission(walls, k, reflex20, recepteur, coeff);
-                        }
-                    }
-                    for (int k = 0; k < n_walls; k++) {
-                        if (k != j && k != i && walls[k].inter(reflex21, reflex20, hello)) {
-                            transmission(walls, k, reflex21, reflex20, coeff);
-                        }
-                    }
-                    for (int k = 0; k < n_walls; k++) {
-                        if (k != i && walls[k].inter(emetteur, reflex21, hello)) {
-                            transmission(walls, k, emetteur, reflex21, coeff);
-                        }
-                    }
-                    field(champ, coeff, (recepteur - image2).norm(), isLocal);
-                }
-                for (int k = 0; k < n_walls; k++) {
-                    if (k != j) {
-                        coeff = complex<double>(1.0, 0.0);
-                        Object image3 = walls[k].image(image2);
-                        Object reflex30;
-                        Object reflex31;
-                        Object reflex32;
-                        if (walls[k].inter(image3, recepteur, reflex30) && walls[j].inter(image2, reflex30, reflex31) && walls[i].inter(image1, reflex31, reflex32)) {
-                            reflection(walls, k, image3, recepteur, coeff);
-                            reflection(walls, j, image2, reflex30, coeff);
-                            reflection(walls, i, image1, reflex31, coeff);
-                            for (int l = 0; l < n_walls; l++) {
-                                if (k != l && walls[l].inter(reflex30, recepteur, hello)) {
-                                    transmission(walls, l, reflex30, recepteur, coeff);
-                                }
-                            }
-                            for (int l = 0; l < n_walls; l++) {
-                                if (k != l && j != l && walls[l].inter(reflex31, reflex30, hello)) {
-                                    transmission(walls, l, reflex31, reflex30, coeff);
-                                }
-                            }
-                            for (int l = 0; l < n_walls; l++) {
-                                if (j != l && i != l && walls[l].inter(reflex32, reflex31, hello)) {
-                                    transmission(walls, l, reflex32, reflex31, coeff);
-                                }
-                            }
-                            for (int l = 0; l < n_walls; l++) {
-                                if (i != l && walls[l].inter(emetteur, reflex32, hello)) {
-                                    transmission(walls, l, emetteur, reflex32, coeff);
-                                }
-                            }
-                            field(champ, coeff, (recepteur - image3).norm(), isLocal);
-                        }
-                    }
-                }
-            }
-        }
+        //for (int j = 0; j < n_walls; j++) {
+        //    /* Boucle pour deux réflexions, similaire au cas à une réflexion mais cette fois on a 2 points de réflexions, 2 images et 3 composantes du trajet où il y aurait des intersections */
+        //    if (j != i) {
+        //        Vector2 reflex20;
+        //        Vector2 reflex21;
+        //        coeff = complex<double>(1.0, 0.0);
+        //        Vector2 image2 = walls[j].image(image1);
+        //        if (walls[j].inter(image2, recepteur, reflex20) && walls[i].inter(image1, reflex20, reflex21)) { //ici on vérifie qu'il y a bien les 2 réflexions qui sont possibles
+        //            //cout << "Mur" << i << ", " << j << endl;
+        //            reflection(walls, j, image2, recepteur, coeff);
+        //            reflection(walls, i, image1, reflex20, coeff);
+        //            for (int k = 0; k < n_walls; k++) {
+        //                if (k != j && walls[k].inter(reflex20, recepteur)) {
+        //                    transmission(walls, k, reflex20, recepteur, coeff);
+        //                }
+        //            }
+        //            for (int k = 0; k < n_walls; k++) {
+        //                if (k != j && k != i && walls[k].inter(reflex21, reflex20)) {
+        //                    transmission(walls, k, reflex21, reflex20, coeff);
+        //                }
+        //            }
+        //            for (int k = 0; k < n_walls; k++) {
+        //                if (k != i && walls[k].inter(emetteur, reflex21)) {
+        //                    transmission(walls, k, emetteur, reflex21, coeff);
+        //                }
+        //            }
+        //            field(champ, coeff, (recepteur - image2).norm(), isLocal);
+        //            //cout << "Puissance = " << power(champ, false) << endl;
+        //        }
+        //        //for (int k = 0; k < n_walls; k++) {
+        //        // /* Boucle pour 3 réflexions, même chose mais avec 3 points de réflexion, 3 images et 4 composantes de trajet */
+        //        //    if (k != j) {
+        //        //        coeff = complex<double>(1.0, 0.0);
+        //        //        Vector2 image3 = walls[k].image(image2);
+        //        //        Vector2 reflex30;
+        //        //        Vector2 reflex31;
+        //        //        Vector2 reflex32;
+        //        //        if (walls[k].inter(image3, recepteur, reflex30) && walls[j].inter(image2, reflex30, reflex31) && walls[i].inter(image1, reflex31, reflex32)) {
+        //        //            //cout << "Mur" << i << ", " << j << ", " << k << endl;
+        //        //            reflection(walls, k, image3, recepteur, coeff);
+        //        //            reflection(walls, j, image2, reflex30, coeff);
+        //        //            reflection(walls, i, image1, reflex31, coeff);
+        //        //            for (int l = 0; l < n_walls; l++) {
+        //        //                if (k != l && walls[l].inter(reflex30, recepteur)) {
+        //        //                    transmission(walls, l, reflex30, recepteur, coeff);
+        //        //                }
+        //        //            }
+        //        //            for (int l = 0; l < n_walls; l++) {
+        //        //                if (k != l && j != l && walls[l].inter(reflex31, reflex30)) {
+        //        //                    transmission(walls, l, reflex31, reflex30, coeff);
+        //        //                }
+        //        //            }
+        //        //            for (int l = 0; l < n_walls; l++) {
+        //        //                if (j != l && i != l && walls[l].inter(reflex32, reflex31)) {
+        //        //                    transmission(walls, l, reflex32, reflex31, coeff);
+        //        //                }
+        //        //            }
+        //        //            for (int l = 0; l < n_walls; l++) {
+        //        //                if (i != l && walls[l].inter(emetteur, reflex32)) {
+        //        //                    transmission(walls, l, emetteur, reflex32, coeff);
+        //        //                }
+        //        //            }
+        //        //            field(champ, coeff, (recepteur - image3).norm(), isLocal);
+        //        //            //cout << "Puissance = " << power(champ, false) << endl;
+        //        //        }
+        //        //    }
+        //        //}
+        //    }
+        //}
     }
-    return power(champ, isLocal);
+    return champ;
 }
 
 int main(int argc, char* argv[]) {
@@ -198,46 +361,146 @@ int main(int argc, char* argv[]) {
         SDL_Event e;
         auto start = chrono::high_resolution_clock::now();
         
-        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
-        SDL_RenderClear(renderer);
+        
+        
+        
+        double* powers = new double[x_dots * y_dots];
+        Vector2* receivers = new Vector2[x_dots * y_dots];
+        int powerReferenceMax = -53.0;  //puissance au-dessus de laquelle le débit est maximal
+        int powerReferenceMin = -78.0;  //puissance en-dessous de laquelle le débit est minimal
+        double powerActualMax = -100.0; //puissance maximale
+        double powerActualMin = -130.0;    //puissance minimale
 
-        double powers[44][8];
-        Receiver receivers[44][8];
-        double powerReference = 0;
-        for (int i = 0; i < 44; i++) {
-            for (int j = 0; j < 8; j++) {
-                receivers[i][j] = Receiver(-11.5 + i, 10.5 + j);
-                powers[i][j] = computation(wallsPlane, n_walls, emetteur2, Receiver((double)(i) / 2, 15), true);
-                powerReference = powers[i][j] > powerReference ? powers[i][j] : powerReference;
+        int ind = 0;
+        for (int i = 0; i < x_dots; i++) {
+            cout << "Recepteur " << i + 1 << "/" << x_dots << endl;
+            for (int j = 0; j < y_dots; j++) {
+                /*
+                * Calcul des coordonnées du récepteur, on commence à(-12, 10) (décalé un peu pour avoir les coins du carré(-12, 10))
+                * et on ajoute une longeur de côté de zone à chaque itération de manière à avoir x_dots zones horizontalement et y_dots zones verticalement
+                */
+                
+                receivers[ind].x = -12 + (i + 0.5) * side_length; 
+                receivers[ind].y =  10 + (j + 0.5) * side_length;
+                complex<double> field1 = computation(wallsPlane, n_walls, emetteur1, receivers[ind], true); //calcul du champ électrique pour le premier émetteur
+                complex<double> field2 = computation(wallsPlane, n_walls, emetteur2, receivers[ind], true); //calcul du champ électrique pour le 2ème émetteur
+                powers[ind] = power(field1 + field2, true);   //calcul de la puissance après avoir 
+                powers[ind] = 10 * log10(powers[ind] /0.001); //conversion en décibels
+                if (powers[ind] < powerActualMin) {
+                    //powerActualMin = powers[ind];
+                }
+                if (powers[ind] > powerActualMax) {
+                    powerActualMax = powers[ind];
+                }
+                //cout << powers[ind] << endl;
+                ind++;
             }
         }
-        for (int i = 0; i < 44; i++) {
-            for (int j = 0; j < 8; j++) {
-                area(receivers[i][j], powers[i][j]/powerReference);
-            }
-        }
-
-
-        for (int i = 0; i < *(&wallsPlane + 1) - wallsPlane; i++) {
-            SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-            line(wallsPlane[i].X, wallsPlane[i].X2);
-        }
-        SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
-        point(emetteur1);
-        point(emetteur2);
-
-        double powerTP8 = computation(walls, 3, emetteur, recepteur, false);
+        cout << "powerActualMin = " << powerActualMin << endl;
+        cout << "powerActualMax = " << powerActualMax << endl;
+        
+        
+        complex<double> champTP8 = computation(walls, 3, emetteurTP8, recepteurTP8, false);
+        cout << "Champ TP 8 : " << champTP8 << endl;
+        double powerTP8 = power(champTP8, false);
         cout << "Power TP 8 : " << powerTP8 << endl;
-        SDL_RenderPresent(renderer);
+        cout << "Power TP 8 (en dBm) : " << 10 * log10(powerTP8 / 0.001) << endl;
+        
         auto stop = chrono::high_resolution_clock::now();
         auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
-        std::cout << "Duration (ms) : " << duration.count() << endl;
+        std::cout << "Duration (s) : " << duration.count()/1000.0 << endl;
+        Vector2 translation = Vector2(0, -10);
+        bool leftMouseButtonDown = false;
+        SDL_Point mousePos;
+        SDL_Point clickOffset;
+        double sensitivity = 1;
+        double zoom_sensitivity = 1.1;
         while (!quit) {
+            Uint32 frame_time = SDL_GetTicks();
             while (SDL_PollEvent(&e) != 0) {
-                if (e.type == SDL_QUIT) {
+                if (e.type == SDL_MOUSEMOTION) {
+                    mousePos = { e.motion.x, e.motion.y };
+                    if (leftMouseButtonDown) {
+                        *offsetx = sensitivity * mousePos.x - clickOffset.x;
+                        *offsety = sensitivity * mousePos.y - clickOffset.y;
+                    }
+                }
+                else if (e.type == SDL_MOUSEBUTTONUP) {
+                    leftMouseButtonDown = false;
+                }
+                else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                    if (!leftMouseButtonDown && e.button.button == SDL_BUTTON_LEFT) {
+                        leftMouseButtonDown = true;
+                        clickOffset.x = sensitivity * mousePos.x - *offsetx;
+                        clickOffset.y = sensitivity * mousePos.y - *offsety;
+                    }
+                }
+                else if (e.type == SDL_MOUSEWHEEL) {
+                    if (e.wheel.y > 0) { //Zoom in
+                        scale *= zoom_sensitivity;
+                        clickOffset.x *= zoom_sensitivity;
+                        clickOffset.y *= zoom_sensitivity;
+                        *offsetx *= zoom_sensitivity;
+                        *offsety *= zoom_sensitivity;
+                    }
+                    if (e.wheel.y < 0) { //Zoom out
+                        scale /= zoom_sensitivity;
+                        clickOffset.x /= zoom_sensitivity;
+                        clickOffset.y /= zoom_sensitivity;
+                        *offsetx /= zoom_sensitivity;
+                        *offsety /= zoom_sensitivity;
+                    }
+                    clickOffset.x = sensitivity * mousePos.x - *offsetx;
+                    clickOffset.y = sensitivity * mousePos.y - *offsety;
+                }
+
+                else if (e.type == SDL_QUIT) {
                     quit = true;
+                    delete[] powers;
+                    delete[] receivers;
                 }
             }
+            SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
+            SDL_RenderClear(renderer);
+            ind = 0;
+            for (int i = 0; i < x_dots; i++) {
+                for (int j = 0; j < y_dots; j++) {
+                    /*
+                    * Pour l'affichage, on doit mettre les valeurs de puissance sur une échelle de 0 à 1
+                    * Pour l'affichage de la puissance de l'avion, on va de la valeur minimale de la puissance (0) à la valeur maximale de la puissance (1)
+                    * Pour l'affichage du débit, on va de -78 dB (0) à -53 dB (1)
+                    */
+                    area(receivers[ind] + translation, (powers[ind] - powerActualMin) / (powerActualMax - powerActualMin)); //affichage de la puissance dans l'avion
+                    if (powers[ind] > powerReferenceMax) {
+                        area(receivers[ind], 1);
+                    }
+                    else if (powers[ind] > powerReferenceMin) {
+                        area(receivers[ind], (powers[ind] - powerReferenceMin) / (powerReferenceMax - powerReferenceMin));
+                    }
+                    ind++;
+                }
+            }
+            for (int i = 0; i < *(&wallsPlane + 1) - wallsPlane; i++) {
+                if (wallsPlane[i].sigma > 0.5) {
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
+                }
+                else {
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
+                }
+                line(wallsPlane[i].X, wallsPlane[i].X2);
+                line(wallsPlane[i].X + translation, wallsPlane[i].X2 + translation);
+            }
+            SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
+            point(emetteur1);
+            point(emetteur2);
+
+            lineFade(0.1);
+
+            cursor();
+
+            frame_time = SDL_GetTicks() - frame_time;
+            float fps = (frame_time > 0) ? 1000.0f / frame_time : 0.0f;
+            SDL_RenderPresent(renderer);
         }
     }
     close();
